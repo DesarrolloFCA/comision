@@ -16,16 +16,16 @@ class ci_permiso_horario extends comision_ci
 		$escalafon = $this -> dep('mapuche')->get_legajo_escalafon($legajo);
 		$agente= $this -> dep('mapuche')->get_legajo_todos($legajo); 
 		$datos['descripcion']= $agente[0]['descripcion'];
+
 		$j = count($escalafon);
 		 for ($i=0; $i<=$j; $i++){
 		 	if ($escalafon [$i]['escalafon'] == 'NODO'){
 		 		$sql = "SELECT legajo , a.id_catedra 
 						FROM reloj.catedras a
 						INNER JOIN reloj.catedras_agentes c ON a.id_catedra = c.id_catedra
-						WHERE legajo = $legajo 
-						AND (id_departamento in (4,6) OR id_departamento >= 10) ";
+						WHERE legajo = $legajo ";
 				$cat_leg = toba::db('comision')->consultar($sql);
-			//	ei_arbol($cat_leg);
+				
 				$catedra_nodo= $cat_leg [0]['id_catedra'];
 		 	}
 		 }
@@ -64,15 +64,15 @@ class ci_permiso_horario extends comision_ci
 				$datos['superior']=$correo_sup[0]['descripcion'];
 			}
 			//ei_arbol ($datos);
-			agente= $this -> dep('mapuche')->get_legajo_todos($legajo); 
+			$agente= $this -> dep('mapuche')->get_legajo_todos($legajo); 
 					$datos['descripcion']= $agente[0]['descripcion'];
 			$this->s__datos = $datos;
 			if (!empty ($datos['legajo'])){
 			$this->enviar_correos($datos['agente']);
-
+			toba::notificacion()->agregar('Su pedido de Permiso Horario sera tramitado a la brevedad', 'info');
 		
 			}
-			toba::notificacion()->agregar('Su pedido de Permiso Horario sera tramitado a la brevedad', 'info');
+			
 
 		} else 
 		{

@@ -28,6 +28,16 @@ class dt_catedra extends comision_datos_tabla
 	
 	function autoridades ($legajo) {
 		//ei_arbol ($legajo);
+		if ($legajo < 10 ) {
+			$sql = "SELECT   legajo , autoridad as legajo_aut
+                    FROM reloj.legajos_autoridad 
+                    WHERE legajo = $legajo";
+       		$autoridad = toba::db('comision')->consultar ($sql);
+      	//	ei_arbol($autoridad);
+      		 // return  $d;
+
+			return $autoridad;
+		}else{
 		$sql = "SELECT legajo_autoridad legajo_aut from reloj.autoridades
 		WHERE legajo_subalterno = $legajo";
 		$autoridad = toba::db('comision')->consultar($sql);
@@ -44,12 +54,12 @@ class dt_catedra extends comision_datos_tabla
 
 			return $autoridad;
 			} else {
-				$sql = "SELECT   legajo , apellido||', '||nombre as legajo_aut
-						FROM uncu.legajo 
-						WHERE legajo = $leg";
-				$autoridad = toba::db('mapuche')->consultar ($sql);
-				//ei_arbol($autoridad);
-				return $autoridad ;        
+			$sql = "SELECT   legajo , apellido||', '||nombre as legajo_aut
+                    FROM uncu.legajo 
+                    WHERE legajo = $leg";
+             $autoridad = toba::db('mapuche')->consultar ($sql);
+			//ei_arbol($autoridad);
+			return $autoridad ;        
 
 			}
 		} else{
@@ -85,7 +95,7 @@ class dt_catedra extends comision_datos_tabla
 			}
 		}
 		//return $leg;
-
+	}
 	}
 	function jefes ($legajo) {
 		$sql = "SELECT jefe from reloj.catedras_agentes b 
@@ -134,8 +144,11 @@ class dt_catedra extends comision_datos_tabla
 		  if ($es_jefe [0]['jefe'] == 1) {
 		 	
 		 	if (($id_catedra >= 49 and $id_catedra <= 52) or ($id_catedra == 99) or ($id_catedra== 28 )or ($id_catedra== 83 )or($id_catedra==86)){
-		 		$jefe [0]['legajo'] = 0;
-		 		$jefe[0]['legajo_jefe']= ' ';
+		 		$aut = self::get_autoridades($legajo,0);
+		 		$jefe [0]['legajo'] = $aut[0]['legajo'];
+		 		$jefe[0]['legajo_jefe']= $aut[0]['legajo_aut'];
+		 		/*$jefe [0]['legajo'] = 0;
+		 				$jefe[0]['legajo_jefe']= ' ';*/
 		 		//ei_arbol($jefe);
 		 	} else {
 		 	$sql = "SELECT * from reloj.departamento_director b 
@@ -145,7 +158,7 @@ class dt_catedra extends comision_datos_tabla
 		 	
 		 	
 
-		 		//ei_arbol($auto);
+		 		
 		 		if ($hay <= 0  ) {
 		 		
 		 			$sql = "SELECT b.legajo_dir  FROM reloj.catedras_agentes a
@@ -153,19 +166,27 @@ class dt_catedra extends comision_datos_tabla
 							inner join reloj.departamento_director b on b.id_departamento = c.id_departamento
 							where a.legajo = $legajo and c.id_catedra = $id_catedra";
 					$temp = toba::db('comision')->consultar($sql);	
-					//ei_arbol($temp)	;
-					if (count($temp)> 0) {
 					
+					$conteo = count($temp);
+					//ei_arbol($conteo);
+					if ($conteo> 0) {
+											
 						$leg = $temp[0]['legajo_dir'];	
 						$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
                     	FROM uncu.legajo 
                     	WHERE legajo = $leg";
        					$jefe = toba::db('mapuche')->consultar ($sql);
+       					//ei_arbol ($sql);
+			
 					} else{
 					
+						$aut = self::get_autoridades($legajo,0);
+						//ei_arbol($aut);
+		 				$jefe [0]['legajo'] = $aut[0]['legajo'];
+		 				$jefe[0]['legajo_jefe']= $aut[0]['legajo_aut'];
 
-		 				$jefe [0]['legajo'] = 0;
-		 				$jefe[0]['legajo_jefe']= ' ';
+		 				/*$jefe [0]['legajo'] = 0;
+		 				$jefe[0]['legajo_jefe']= ' ';*/
 		 			}		
 		 		}else
 		 		{
@@ -177,17 +198,23 @@ class dt_catedra extends comision_datos_tabla
 						WHERE jefe = true
 						AND d.legajo = $legajo;";
 						$temp= toba::db('comision')->consultar($sql);
-				//ei_arbol($temp)	;
+										
 							$leg = $temp[0]['legajo_dir'];
 						if($leg <> $legajo and $leg<> null) {
 							$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
                     		FROM uncu.legajo 
                     		WHERE legajo = $leg";
        						$jefe = toba::db('mapuche')->consultar ($sql);
+       						//ei_arbol($jefe);
        					} else {
-       					//ei_arbol($temp)	;
-       					$jefe [0]['legajo'] = 0;
-		 				$jefe[0]['legajo_jefe']= ' ';
+       					
+       					$aut = self::get_autoridades($legajo,0);
+		 				
+		 				$jefe [0]['legajo'] = $aut[0]['legajo'];
+		 				$jefe[0]['legajo_jefe']= $aut[0]['legajo_aut'];
+		 				//ei_arbol($jefe);
+		 				/*$jefe [0]['legajo'] = 0;
+		 				$jefe[0]['legajo_jefe']= ' ';*/
        					}
        					
        						 
@@ -226,8 +253,8 @@ class dt_catedra extends comision_datos_tabla
        						$jefe = toba::db('mapuche')->consultar ($sql);
 							} else {
        			
-       				$jefe[0]['legajo'] = 0; 
-       				$jefe[0]['legajo_jefe'] = 'sin superior';}
+       				$jefe [0]['legajo'] = $aut[0]['legajo'];
+		 				$jefe[0]['legajo_jefe']= $aut[0]['legajo_aut'];}
        			}
 		}	
 		//ei_arbol($jefe);
@@ -251,7 +278,7 @@ class dt_catedra extends comision_datos_tabla
 		}else {
 			$legajo_aut = self::autoridades ($legajo);
 		}
-		
+		//ei_arbol($legajo_aut);
 		return $legajo_aut;
 	}
 	function get_ayn_aut($legajo_aut){
@@ -262,30 +289,6 @@ class dt_catedra extends comision_datos_tabla
        //ei_arbol($d);
        return $d;
 	}
-
-	function get_listado($filtro=array())
-	{
-		$where = array();
-		if (isset($filtro['nombre_catedra'])) {
-			$where[] = "nombre_catedra ILIKE ".quote("%{$filtro['nombre_catedra']}%");
-		}
-		if (isset($filtro['id_departamento'])) {
-			$where[] = "id_departamento = ".quote($filtro['id_departamento']);
-		}
-		$sql = "SELECT
-			t_c.id_catedra,
-			t_c.nombre_catedra,
-			t_d.departamento as id_departamento_nombre
-		FROM
-			catedras as t_c	LEFT OUTER JOIN departamentos as t_d ON (t_c.id_departamento = t_d.id_departamento)
-		ORDER BY nombre_catedra";
-		if (count($where)>0) {
-			$sql = sql_concatenar_where($sql, $where);
-		}
-		return toba::db('comision')->consultar($sql);
-	}
-
-
 
 }
 ?>
