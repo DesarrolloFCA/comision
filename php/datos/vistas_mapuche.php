@@ -661,9 +661,9 @@ class vistas_mapuche extends toba_datos_relacion
         static function get_legajos()
         {
             $sql = "SELECT legajo, legajo||' - '||apellido||', '||nombre as descripcion 
-                    FROM uncu.legajo ORDER BY legajo";
+                    FROM reloj.agentes ORDER BY legajo";
 
-            return toba::db('mapuche')->consultar($sql); 
+            return toba::db('comision')->consultar($sql); 
         }
 
         static function get_apellido($legajo, $cargos_todos=null)
@@ -731,9 +731,9 @@ class vistas_mapuche extends toba_datos_relacion
         {
             $sql = "SELECT legajo, apellido, nombre, fec_nacim, dni, fec_ingreso, estado_civil, caracter, categoria, agrupamiento, escalafon, 
                            fec_nacim as fecha_nacimiento, cuil
-                    FROM uncu.legajo WHERE legajo = '$legajo'";
+                    FROM reloj.agentes WHERE legajo = '$legajo'";
 
-            return toba::db('mapuche')->consultar_fila($sql); 
+            return toba::db('comision')->consultar_fila($sql); 
         } 
 
         static function get_cuil($legajo)

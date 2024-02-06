@@ -21,14 +21,14 @@ class ci_articulo extends comision_ci
 		//ei_arbol($datos);
 		if ($datos['dias'] > 0) {
 			
-		
+		//ei_arbol($id_motivo);
 		
 		if ($id_motivo == 35 or $id_motivo == 57 or $id_motivo == 55) {
 		$sql =  "SELECT count(*) cantidad from reloj.inasistencias
 			WHERE legajo = $legajo
 			AND id_catedra=$id_catedra
 			AND anio =$anio
-			AND id_motivo =35 ";
+			AND id_motivo = 35 ";
 		$hay_vacaciones =  toba::db('comision')->consultar($sql); 
 		$ya_tomo = $hay_vacaciones[0]['cantidad'];
 			
@@ -37,12 +37,7 @@ class ci_articulo extends comision_ci
 
 			$depto = toba::db('comision')->consultar($sql); 
 
-			if ($legajo == 26010){
-				$deptos= $depto[0]['id_departamento'];
-				$depto[0]['id_departamento']= 13;
-
-			}
-
+			
 
 			if ($depto[0]['id_departamento']<10 or ($depto[0]['id_departamento'] == 12) or ($depto[0]['id_departamento'] == 11)){
 			$sql = "SELECT t_l.legajo, t_l.apellido, t_l.nombre, t_l.fec_nacim, t_l.dni, t_l.fecha_ingreso, t_l.estado_civil, 
@@ -78,12 +73,7 @@ class ci_articulo extends comision_ci
 			$sql = "SELECT nombre_catedra, id_departamento FROM reloj.catedras
 				WHERE id_catedra = $id_catedra";
 			$depto = toba::db('comision')->consultar($sql); 
-			/*if ($legajo == 26010){
-				$deptos= $depto[0]['id_departamento'];
-				$depto[0]['id_departamento']= 13;
 
-
-			}*/
 			//ei_arbol($depto);
 			if ($depto[0]['id_departamento']<10 or ($depto[0]['id_departamento'] == 12)or ($depto[0]['id_departamento'] == 11)){
 			$sql = "SELECT t_l.legajo, t_l.apellido, t_l.nombre, t_l.fec_nacim, t_l.dni, t_l.fecha_ingreso, t_l.estado_civil, 
@@ -113,7 +103,9 @@ class ci_articulo extends comision_ci
 			
 
 		} 
-		if ($legajo == 26010 or $legajo==20738)
+
+		if ($legajo == 26010 or $legajo==20738 or $legajo == 18615 or $legajo == 34394 or $legajo == 33672 or $legajo == 18176 or $legajo == 25549 or $legajo == 20738)
+
 		{
 			$sql = "SELECT t_l.legajo, t_l.apellido, t_l.nombre, t_l.fec_nacim, t_l.dni, t_l.fecha_ingreso, t_l.estado_civil, 
 						t_l.caracter, t_l.categoria, t_l.agrupamiento, t_l.escalafon, 
@@ -128,13 +120,12 @@ class ci_articulo extends comision_ci
 		
 
 		$agente = toba::db('comision')->consultar($sql);          
-		/*if($legajo == 26010){
-				$depto[0]['id_departamento'] = $deptos ;
-				
-			}*/
+		
 		$cant = count($agente);
-	//	ei_arbol($sql);
-		$sql = "SELECT MIN(fecha_ingreso) fecha from reloj.agentes
+		//ei_arbol($sql);
+
+		/*$sql = "SELECT MIN(fecha_ingreso) fecha from reloj.agentes
+
 		where legajo = $legajo";
 		$fec_ingreso = toba::db('comision')->consultar($sql);
 		$res =     $fec_ingreso[0]['fecha'];
@@ -160,7 +151,7 @@ class ci_articulo extends comision_ci
 				$dias = mktime(0,0,0,$dias[1],$dias[0],$dias[2]);
 				$antiguedad = ((time()-$dias)/31556926 );
 				// (int)((time()-$dias)/31556926 );
-			}
+			}*/
 			// ei_arbol($antiguedad);
 
 			$dias= $datos['dias'];
@@ -306,10 +297,10 @@ class ci_articulo extends comision_ci
 
 					}            
 								
-				} elseif ($id_motivo == 35) {
+				} elseif ($id_motivo == 35) { //Vacaciones
 							
 					//ei_arbol($agente);
-							$agente[$i]['articulo'] = 0;
+							$agente[$i]['articulo'] = 55;
 							$agente[$i]['id_decreto'] = 4;
 							$dias_restantes = 0;
 							//ei_arbol ($agente);
@@ -328,7 +319,7 @@ class ci_articulo extends comision_ci
 							} else {
 								$hay_cargadas = 0;
 							}
-							if ($antiguedad > 20){
+						/*	if ($antiguedad > 20){
 								$dias_totales = 40 + $dias_restantes - $adelanto;
 							//     ei_arbol ($dias);
 								if ($dias >$dias_totales ) {
@@ -438,11 +429,17 @@ class ci_articulo extends comision_ci
 									$bandera_nodo=false;
 							
 								} else {
-							$agente[$i]['articulo'] = 55;
-							$bandera= true;
-								}
-				/// Vacaciones Pendientes no docente
+							$agente[$i]['articulo'] = 55;*/
+						/*if (date("Y-m-d") >= '2023-12-08'){ //Quitar comentario para limite de dias
+							toba::notificacion()->agregar('Se ha pasado la fecha limite de carga de Licencia Anual', "info");
 
+									$bandera_nodo=false;
+						} else {*/	
+							$bandera= true;
+							//} //Quitar comentario para limite de dias
+
+				/// Vacaciones Pendientes no docente
+				
 				} else if ($id_motivo==57){
 					$agente[$i]['articulo'] = null;
 							$agente[$i]['id_decreto'] = 4;
@@ -523,7 +520,7 @@ class ci_articulo extends comision_ci
 						$agente[$i]['articulo'] = null;
 						if ($datos['certificado'] <> null){
 							$agente[$i]['articulo'] = 97;
-							$agente[$i]['id_decreto'] = 5;
+							$agente[$i]['id_decreto'] = 9;
 							$bandera= true; 
 						} else {
 							toba::notificacion()->agregar('Por favor adjunte el Certificado correspondiente', "info");
@@ -769,7 +766,7 @@ class ci_articulo extends comision_ci
 			} else {
 				// Docentes
 
-				if ($id_motivo == 30) { //Rezones particulares
+				if ($id_motivo == 30) { //Razones particulares
 						//ei_arbol($id_motivo);
 						if (date("Y") == $anio){
 							if ($dias <= 2){
@@ -862,7 +859,7 @@ class ci_articulo extends comision_ci
 								$dias_restantes=$dias_vp[0]['dias'];
 							}
 
-							if ($antiguedad > 15){
+							/*if ($antiguedad > 15){
 								
 								$dias_totales = 45 + $dias_restantes;
 								if ($dias >$dias_totales ) {
@@ -913,11 +910,17 @@ class ci_articulo extends comision_ci
 									}
 								}    
 
-							//ei_arbol($dias_totales);
+							//ei_arbol($dias_totales);}*/
 
+							/*if (date("Y-m-d") >= '2023-12-08'){ //Quitar comentario para limite de dias
+							toba::notificacion()->agregar('Se ha pasado la fecha limite de carga de Licencia Anual', "info");
+
+									$bandera_nodo=false;
+						} else {	*/
+							$bandera= true;
+							// }	//Quitar comentario para limite de dias
 								
-								
-							}
+							
 				// VAcaciones pendientes docentes            
 				}else if ($id_motivo == 57){
 					$agente[$i]['articulo'] = null;
@@ -999,7 +1002,7 @@ class ci_articulo extends comision_ci
 						$agente[$i]['articulo'] = null;
 						if ($datos['certificado'] <> null){
 							$agente[$i]['articulo'] = 97;
-							$agente[$i]['id_decreto'] = 5;
+							$agente[$i]['id_decreto'] = 9;
 							$bandera= true; 
 						} else {
 							toba::notificacion()->agregar('Por favor adjunte el Certificado correspondiente', "info");
@@ -1137,6 +1140,108 @@ class ci_articulo extends comision_ci
 							toba::notificacion()->agregar('Solamente puede tomar como máximo 5 días por Certificado', "info");
 							$bandera = false;  
 					}
+				}else if ($id_motivo == 47){ //Examen para rendir concurso
+					if ($dias >= 1 and $dias <=3 ) {
+						$agente[$i]['articulo'] = null;
+					$sql = "SELECT count(*) cant FROM reloj.parte 
+								where id_motivo = $id_motivo
+								and legajo = $legajo
+								and anio = $anio";
+						$tomo=toba::db('comision')->consultar($sql);
+						if ($tomo[0]['cant'] <= 3)	{
+						if ($datos['certificado'] <> null){
+							$agente[$i]['articulo'] = 95;
+							$agente[$i]['id_decreto'] = 8;
+							$bandera= true; 
+						} else {
+							toba::notificacion()->agregar('Por favor adjunte el Certificado correspondiente', "info");
+							$bandera = false;   
+						}
+					} else {
+							toba::notificacion()->agregar('Ya hizo uso de todas estas licencia el presente año', "info");
+							$bandera = false; 
+					}
+					} else {
+							toba::notificacion()->agregar('Solamente puede tomar como máximo 3 días por Certificado', "info");
+							$bandera = false;  
+					}
+					
+
+				} else if ($id_motivo == 61 ) {
+					if (date("Y") == $anio){
+							if ($dias <= 2){
+							for ($j=0; $j < $cant; $j++){
+							$agente [$j]['articulo'] = 0;
+							$agente[$j]['id_decreto'] = 8;	
+							}
+							
+							$sql = "SELECT -SUM(dias) +2 dias_restantes 
+									FROM reloj.parte
+							WHERE legajo = $legajo
+							AND id_motivo = 61
+							AND  DATE_PART('month', fecha_inicio_licencia) = $m";
+							$parte = toba::db('comision')->consultar($sql);
+							/*$sql = "SELECT fecha_inicio, fecha_fin*/
+							$sql = "SELECT  fecha_fin - fecha_inicio + 1 dias_rp
+								FROM reloj.inasistencias
+								Where legajo = $legajo AND id_motivo=61 AND extract (month from fecha_inicio)=$m And extract(year from fecha_inicio) = $anio";
+
+							$pendiente = toba::db('comision')->consultar($sql);
+								$lim = count($pendiente);
+								$dias_tomados = 0;
+							//ei_arbol($pendiente);	
+								for ($i=0; $i<$lim; $i++){
+								$dias_tomados = $dias_tomados + $pendiente[$i]['dias_rp'];
+									
+								}
+
+							
+							$temp[0]['dias_restantes'] = $parte[0]['dias_restantes']+ $dias_tomados + $dias;
+							//ei_arbol($temp);
+								if(!is_null($temp)&&($temp[0]['dias_restantes'] >= 0 && $temp[0]['dias_restantes']<=2 )){
+									$sql="SELECT -SUM(dias) +6 dias_restantes 
+									FROM reloj.parte
+									WHERE legajo = $legajo
+									AND id_motivo = 61
+									AND  DATE_PART('year', fecha_inicio_licencia) = $y";
+									$temp = toba::db('comision')->consultar($sql);    
+									//ei_arbol($temp);
+										if (is_null($temp[0]['dias_restantes'])|| ($temp[0]['dias_restantes'] >= 0 && $temp[0]['dias_restantes']<=6 )){
+										$lim = count($agente);
+										for ($i = 0; $i<$lim; $i++){	
+										$agente [$i]['articulo'] = 109;
+										}
+									$bandera= true;
+									//ei_arbol($agente);
+
+									} else {
+									toba::notificacion()->agregar('Ud ha excedido la cantidad anual de razones particulares este a&ntilde;o cuenta con '.$temp[0]['dias_restantes'] .' d&iacute;as', "info");
+									} 
+								} else 
+								{
+								
+								//ei_arbol($agente);    
+									$temp[0]['dias_restantes'] = $parte[0]['dias_restantes'] + $dias_tomados -2;
+									if ($temp[0]['dias_restantes'] >= 0 ) {
+										$temp[0]['dias_restantes'] = 0;
+									} else {
+										$temp[0]['dias_restantes'] =abs($temp[0]['dias_restantes']);
+									}
+									
+								toba::notificacion()->agregar('Ud ha excedido la cantidad mensual de razones particulares este mes cuenta con '.$temp[0]['dias_restantes'] .' días', "info");
+								}
+								
+								
+							} 
+							/*else {
+								toba::notificacion()->agregar('Ud ha excedido la cantidad de d&iacute;as recuerde que las razones particulares son entre 1 y 2 d&iacute;as' , "info");                                
+							}*/
+						} else {
+						toba::notificacion()->agregar('Introduzca el corriente a&ntildeo. Gracias ', "info");
+
+									$bandera_nodo = false;
+
+						}      
 
 				} 	
 
@@ -1237,12 +1342,12 @@ class ci_articulo extends comision_ci
 
 
 			
-			//ei_arbol($agente);
+			//ei_arbol($datos);
 			if($datos['fecha_inicio_licencia']< '2022-12-26'){
 				toba::notificacion()->agregar('Ingrese una fecha mayor o igual al 26/12/2022', "info");
 			}else
 			{
-			
+			//	ei_arbol($datos);
 				if ($ya_tomo == 0){
 						if($bandera_nodo ){
 						//	ei_arbol($id_motivo.' motivo', $id_decreto. ' decreto', $articulo.' articulo');
@@ -1270,24 +1375,24 @@ class ci_articulo extends comision_ci
 
 					if ($id_motivo <> 30){
 					  if ($id_motivo <> 57){
+					  	if ($id_motivo <> 61 ){	
+					   		if($id_motivo <> 35 ) {
 
-					   	if($id_motivo <> 35 ) {
-
-						$sql = "SELECT id_inasistencia FROM reloj.inasistencias
+							$sql = "SELECT id_inasistencia FROM reloj.inasistencias
 								WHERE legajo = $usuario_alta
 								AND fecha_inicio = '$fecha_inicio'
 								AND id_motivo = $id_motivo ;";
-						$ina = toba::db('comision')->consultar($sql);
-						$id_inasistencia = $ina [0]['id_inasistencia'];
-						$ruta='C:/Toba/proyectos/ctrl_asis/www/certificados/';
-						$ar_nombre_completo = explode('.', $datos['certificado']['name']);
-						$archivo_nombre = $ruta.$id_inasistencia.$fecha_inicio.'.pdf' ;
-						$datos['archivo'] = $archivo_nombre;
-						$datos = $this->procesar_archivo($datos);
-						}	
-					 }		
+							$ina = toba::db('comision')->consultar($sql);
+							$id_inasistencia = $ina [0]['id_inasistencia'];
+							$ruta='C:/Toba/proyectos/ctrl_asis/www/certificados/';
+							$ar_nombre_completo = explode('.', $datos['certificado']['name']);
+							$archivo_nombre = $ruta.$id_inasistencia.$fecha_inicio.'.pdf' ;
+							$datos['archivo'] = $archivo_nombre;
+							$datos = $this->procesar_archivo($datos);
+							}	
+					 	}		
+					 }
 					}
-
 	
 		/////
 		//actualizacion o borrado de vacaciones restantes
@@ -1499,14 +1604,14 @@ $mail->IsHTML(true); //el mail contiene html
 
 	} else if ($datos['id_motivo'] == 35)
 	{
-			$mail->Subject = 'Formulario de Licencia Anual';
+			$mail->Subject = 'Formulario de Licencia Anual por Vacaciones';
 		//$motivo = 'Vacaciones'.$datos['anio'];
 		$body = '<table>
 						El/la agente  <b>'.$datos['descripcion'].'</b> perteneciente a  <b>'.$datos['catedra'].'</b>.<br/>
-						Solicita la licencia anual correspondiente al  '.$datos['anio'].' a partir del d&iacute;a '.$fecha.'hasta '.$hasta. '. <br/>
-						Teniendo en cuenta las siguientes Observaciones: ' .$datos['observaciones']. '
+						Solicita laLicencia Anual por Vacaciones correspondiente al año '.$datos['anio'].' a partir del d&iacute;a '.$fecha.' hasta '.$hasta. '. <br/>
+						
 											
-			</table>';
+			</table>'; 
 	/*} else if ($datos['id_motivo'] == 55)
 	{
 		$mail->Subject = 'Formulario de Adelanto de Licencia Anual';
@@ -1531,7 +1636,17 @@ $mail->IsHTML(true); //el mail contiene html
 			<table/>';
 
 
-	} else {
+	} else if ($$datos ['id_motivo'] == 61)
+	 	{
+			$mail->Subject = 'Formulario de Justificacion de Inasistencia por Excesos de Inasistencia (SIN GOCE)';			
+			$body = '<table>
+
+				El/la agente <b>'.$datos['descripcion'].'</b> perteneciente a <b>'.$datos['catedra'].'</b> <br/>
+				Solicita solicita Razones Particulares a partir SIN GOCE  a partir del d&iacute;a '.$fecha. ' hasta '.$hasta. '<br/>
+				Teniendo en cuenta las siguientes Observaciones: ' .$datos['observaciones'].  '<br/>
+			<table/>';	
+
+		} else {
 		$body = '<table>
 
 				El/la agente <b>'.$datos['descripcion'].'</b> perteneciente a <b>'.$datos['catedra'].'</b> <br/>
@@ -1546,7 +1661,7 @@ $mail->IsHTML(true); //el mail contiene html
 				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Realización de Actividad Deportiva o Art&iacute;stica';
 				break;
 			case 49:
-				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Citaci&oacute;n de Sangre';
+				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Citaci&oacute;n Judicial';
 				break;
 			case 17:
 				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Fallecimiento de Cony&uacute;ge o Pariente de Primer Grado';
@@ -1577,8 +1692,14 @@ $mail->IsHTML(true); //el mail contiene html
 				break;		
 			case 15: 
 				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Exam&eacute;n de Nivel Superior';
-				break;			
-		}
+				break;
+			case 47:
+				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Exam&eacute;n para Concurso';
+				break;
+			case 61: 
+				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Excesos de Inasistencia (SIN GOCE)';			
+				break;	
+			}
 	
 	}
 
@@ -1586,7 +1707,7 @@ $mail->IsHTML(true); //el mail contiene html
 	
 
 	; //date("d/m/y",$fecha)
- //ei_arbol ($body);
+//ei_arbol ($body);
 $mail->Body = $body;
 //Enviamos el correo
 if(!$mail->Send()) {
@@ -1665,8 +1786,7 @@ $mail->IsHTML(true); //el mail contiene html
 		$body = '<table>
 
 						El/la agente  <b>'.$datos['descripcion'].'</b> perteneciente a  la <b>'.$datos['catedra'].'</b>.<br/>
-						Solicita <b> Licencia Anual</b> correspondiente al  '.$datos['anio'].' a partir del d&iacute;a '.$fecha.' hasta '.$hasta. '.<br/>
-						Teniendo en cuenta las siguientes Observaciones: ' .$datos['observaciones']. ' <br/>
+						Solicita <b> Licencia Anual por Vacaciones </b> correspondiente al  '.$datos['anio'].' a partir del d&iacute;a '.$fecha.' hasta '.$hasta. '.<br/>
 						En caso de no estar de acuerdo con la autorizacion enviar un correo a asistencia@fca.uncu.edu.ar .
 
 											
@@ -1683,7 +1803,20 @@ $mail->IsHTML(true); //el mail contiene html
 			<table/>';
 
 
-	} else {
+	}else if ($$datos ['id_motivo'] == 61)
+	 	{
+			$mail->Subject = 'Formulario de Justificacion de Inasistencia por Excesos de Inasistencia (SIN GOCE)';			
+			$body = '<table>
+
+				El/la agente <b>'.$datos['descripcion'].'</b> perteneciente a <b>'.$datos['catedra'].'</b> <br/>
+				Solicita solicita Razones Particulares a partir SIN GOCE  a partir del d&iacute;a '.$fecha. ' hasta '.$hasta. '<br/>
+				Teniendo en cuenta las siguientes Observaciones: ' .$datos['observaciones'].  '<br/>
+				En caso de no estar de acuerdo con la autorizacion enviar un correo a asistencia@fca.uncu.edu.ar .
+			<table/>';	
+
+		}
+
+	else {
 		$mail->Subject = 'Formulario de Justificaci&oacute;n de Inasistencia por Donacion de Sangre';
 		$body = '<table>
 
@@ -1730,6 +1863,12 @@ $mail->IsHTML(true); //el mail contiene html
 			case 15: 
 				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Exam&eacute;n de Nivel Superior';
 				break;			
+			case 61: 
+				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Excesos de Inasistencia (SIN GOCE)';			
+				break;	
+			case 47:
+				$mail->Subject = 'Formulario de Justificacion de Inasistencia por Exam&eacute;n para Concurso';
+				break;	
 		}
 
 	}
@@ -1767,6 +1906,26 @@ if(!$mail->Send()) {
          
          return $datos;
       }
+   function extender_objeto_js(){
+   	parent::extender_objeto_js();
+   	$id_formulario = $this->dep('formulario')->get_id_objeto_js();
+	echo "
+		  $id_formulario.evt__id_motivo__procesar = function (es_inicial)
+		  {
+		  	if (this.ef('id_motivo').get_estado() == '35'){
+		  		var ano = new Date().getFullYear();
+		  		const inicio = new Date(ano, 11, 26);
+		  		this.ef('fecha_inicio_licencia').set_fecha(inicio);
+		  		this.ef('observaciones').set_estado('');
+		  		this.ef('observaciones').desactivar();
+		  		this.ef('fecha_inicio_licencia').desactivar();
+		  	} else {
+		  		this.ef('observaciones').activar();
+		  		this.ef('fecha_inicio_licencia').activar();
+		  	}
+		  } 
+		  ";   
+   }
 
 }
 ?>

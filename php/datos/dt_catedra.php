@@ -55,9 +55,9 @@ class dt_catedra extends comision_datos_tabla
 			return $autoridad;
 			} else {
 			$sql = "SELECT   legajo , apellido||', '||nombre as legajo_aut
-                    FROM uncu.legajo 
+                    FROM reloj.agentes
                     WHERE legajo = $leg";
-             $autoridad = toba::db('mapuche')->consultar ($sql);
+             $autoridad = toba::db('comision')->consultar ($sql);
 			//ei_arbol($autoridad);
 			return $autoridad ;        
 
@@ -87,9 +87,9 @@ class dt_catedra extends comision_datos_tabla
 			return $autoridad;
 			} else {
 			$sql = "SELECT   legajo , apellido||', '||nombre as legajo_aut
-                    FROM uncu.legajo 
+                    FROM reloj.agentes 
                     WHERE legajo = $leg";
-       		$autoridad = toba::db('mapuche')->consultar ($sql);
+       		$autoridad = toba::db('comision')->consultar ($sql);
 			//ei_arbol($autoridad);
 			return $autoridad ;
 			}
@@ -173,9 +173,9 @@ class dt_catedra extends comision_datos_tabla
 											
 						$leg = $temp[0]['legajo_dir'];	
 						$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
-                    	FROM uncu.legajo 
+                    	FROM reloj.agentes 
                     	WHERE legajo = $leg";
-       					$jefe = toba::db('mapuche')->consultar ($sql);
+       					$jefe = toba::db('comision')->consultar ($sql);
        					//ei_arbol ($sql);
 			
 					} else{
@@ -202,9 +202,9 @@ class dt_catedra extends comision_datos_tabla
 							$leg = $temp[0]['legajo_dir'];
 						if($leg <> $legajo and $leg<> null) {
 							$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
-                    		FROM uncu.legajo 
+                    		FROM reloj.agentes
                     		WHERE legajo = $leg";
-       						$jefe = toba::db('mapuche')->consultar ($sql);
+       						$jefe = toba::db('comision')->consultar ($sql);
        						//ei_arbol($jefe);
        					} else {
        					
@@ -233,9 +233,9 @@ class dt_catedra extends comision_datos_tabla
 
 				if ($leg <> null or $leg<>'' ){
 						$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
-                    	FROM uncu.legajo 
+                    	FROM reloj.agentes 
                     	WHERE legajo = $leg";
-       			$jefe = toba::db('mapuche')->consultar ($sql);
+       			$jefe = toba::db('comision')->consultar ($sql);
        			} else {
        				//Agregué la catedra en la consulta como esta en desarrollo (la 49) para que traiga bien el jefe de departamento - LEO
        				$sql = "SELECT b.legajo_dir  FROM reloj.catedras_agentes a
@@ -248,9 +248,9 @@ class dt_catedra extends comision_datos_tabla
 					
 							$leg = $temp[0]['legajo_dir'];	
 							$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
-                    		FROM uncu.legajo 
+                    		FROM reloj.agentes
                     		WHERE legajo = $leg";
-       						$jefe = toba::db('mapuche')->consultar ($sql);
+       						$jefe = toba::db('comision')->consultar ($sql);
 							} else {
        			
        				$jefe [0]['legajo'] = $aut[0]['legajo'];
@@ -283,9 +283,9 @@ class dt_catedra extends comision_datos_tabla
 	}
 	function get_ayn_aut($legajo_aut){
 		$sql = "SELECT   apellido||', '||nombre as ayn
-                    FROM uncu.legajo 
+                    FROM reloj.agentes 
                     WHERE legajo = $legajo_aut";
-       $d = toba::db('mapuche')->consultar ($sql);
+       $d = toba::db('comision')->consultar ($sql);
        //ei_arbol($d);
        return $d;
 	}
