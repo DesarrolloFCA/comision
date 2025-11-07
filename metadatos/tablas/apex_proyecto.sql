@@ -48,11 +48,11 @@ INSERT INTO apex_proyecto (proyecto, descripcion, descripcion_corta, estilo, con
 	'0', --item_pre_sesion_popup
 	NULL, --item_set_sesion
 	'1', --log_archivo
-	'6', --log_archivo_nivel
+	'7', --log_archivo_nivel
 	'comision', --fuente_datos
 	NULL, --pagina_tipo
-	'1.1', --version
-	'2024-03-04', --version_fecha
+	'1.4.3', --version
+	'2025-03-07', --version_fecha
 	NULL, --version_detalle
 	NULL, --version_link
 	NULL, --tiempo_espera_ms

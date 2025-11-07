@@ -21,11 +21,11 @@ INSERT INTO apex_objeto (proyecto, objeto, anterior, identificador, reflexivo, c
 	NULL, --objeto_categoria_proyecto
 	NULL, --objeto_categoria
 	'Login Genérico', --nombre
-	'Autentificación de Usuarios', --titulo
+	'Autenticación de Usuarios', --titulo
 	'0', --colapsable
 	NULL, --descripcion
-	'comision', --fuente_datos_proyecto
-	'comision', --fuente_datos
+	NULL, --fuente_datos_proyecto
+	NULL, --fuente_datos
 	NULL, --solicitud_registrar
 	NULL, --solicitud_obj_obs_tipo
 	NULL, --solicitud_obj_observacion
@@ -173,7 +173,7 @@ INSERT INTO apex_objeto_ci_pantalla (objeto_ci_proyecto, objeto_ci, pantalla, id
 	NULL, --eventos
 	'pant_login', --subclase
 	'login/pant_login.php', --subclase_archivo
-	NULL, --template
+	'<p style="text-align: center;">[dep id=datos]&lt;hr&gt;[dep id=openid]&lt;hr&gt;[dep id=seleccion_usuario]&lt;hr&gt;[dep id=cas]</p>', --template
 	NULL, --template_impresion
 	'35736730000002'  --punto_montaje
 );

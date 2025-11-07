@@ -2,7 +2,7 @@
 class dt_catedra extends comision_datos_tabla
 {
 	
-	function get_catedra_agentes ($legajo)
+	static function get_catedra_agentes ($legajo)
 	{
 		//ei_arbol ($legajo);
 		
@@ -26,8 +26,8 @@ class dt_catedra extends comision_datos_tabla
 
 	}
 	
-	function autoridades ($legajo) {
-		//ei_arbol ($legajo);
+	static function autoridades ($legajo) {
+	
 		if ($legajo < 10 ) {
 			$sql = "SELECT   legajo , autoridad as legajo_aut
                     FROM reloj.legajos_autoridad 
@@ -97,7 +97,7 @@ class dt_catedra extends comision_datos_tabla
 		//return $leg;
 	}
 	}
-	function jefes ($legajo) {
+	static function jefes ($legajo) {
 		$sql = "SELECT jefe from reloj.catedras_agentes b 
 		 		WHERE legajo = $legajo;";
 		 $es_jefe = toba::db('comision')->consultar($sql);	
@@ -131,7 +131,7 @@ class dt_catedra extends comision_datos_tabla
 		//ei_arbol($legajo_jefe);
 	}
 
-	function get_catedra_jefe ($legajo, $id_catedra)
+	static function get_catedra_jefe ($legajo, $id_catedra)
 	{
 		//ei_arbol($legajo,$id_catedra);
 
@@ -143,7 +143,7 @@ class dt_catedra extends comision_datos_tabla
 
 		  if ($es_jefe [0]['jefe'] == 1) {
 		 	
-		 	if (($id_catedra >= 49 and $id_catedra <= 52) or ($id_catedra == 99) or ($id_catedra== 28 )or ($id_catedra== 83 )or($id_catedra==86)){
+		 	if (($id_catedra >= 49 and $id_catedra <= 52) or ($id_catedra== 28 )or ($id_catedra== 83 )or($id_catedra==86)){
 		 		$aut = self::get_autoridades($legajo,0);
 		 		$jefe [0]['legajo'] = $aut[0]['legajo'];
 		 		$jefe[0]['legajo_jefe']= $aut[0]['legajo_aut'];
@@ -207,15 +207,22 @@ class dt_catedra extends comision_datos_tabla
        						$jefe = toba::db('comision')->consultar ($sql);
        						//ei_arbol($jefe);
        					} else {
+							if(($auto[0]['id_departamento'] == 8) and $auto[0]['id_departamento'] == 3 and $auto[0]['id_departamento'] == 5 ){
+								$leg = 26118;
+								$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
+								FROM reloj.agentes 
+								WHERE legajo = $leg";
+								   $jefe = toba::db('comision')->consultar ($sql);			
+							} else {  					
+								   $aut = self::get_autoridades($legajo,0);
+								 $jefe [0]['legajo'] = $aut[0]['legajo'];
+								 $jefe[0]['legajo_jefe']= $aut[0]['legajo_aut'];
+					 //ei_arbol($jefe);
+					 /*$jefe [0]['legajo'] = 0;
+					 $jefe[0]['legajo_jefe']= ' ';*/
+					   }
+					   }
        					
-       					$aut = self::get_autoridades($legajo,0);
-		 				
-		 				$jefe [0]['legajo'] = $aut[0]['legajo'];
-		 				$jefe[0]['legajo_jefe']= $aut[0]['legajo_aut'];
-		 				//ei_arbol($jefe);
-		 				/*$jefe [0]['legajo'] = 0;
-		 				$jefe[0]['legajo_jefe']= ' ';*/
-       					}
        					
        						 
        					
@@ -264,12 +271,20 @@ class dt_catedra extends comision_datos_tabla
 		
 		
 	}
-	function get_descripciones()
+	static function get_descripciones()
 	{
 		$sql = "SELECT id_catedra, nombre_catedra FROM catedras ORDER BY nombre_catedra";
 		return toba::db('comision')->consultar($sql);
 	}
-	function get_autoridades ($legajo,$superior){
+	static function get_descripciones_corto()
+	{
+		$sql = "SELECT id_catedra, substr(nombre_catedra,1,28) nombre_catedra FROM catedras ORDER BY nombre_catedra";
+		return toba::db('comision')->consultar($sql);
+	}
+
+
+
+	static function get_autoridades ($legajo,$superior){
 		
 		//ei_arbol($legajo,$superior);
 		if ($superior <> 0 ){
@@ -281,13 +296,35 @@ class dt_catedra extends comision_datos_tabla
 		//ei_arbol($legajo_aut);
 		return $legajo_aut;
 	}
-	function get_ayn_aut($legajo_aut){
+	static function get_ayn_aut($legajo_aut){
 		$sql = "SELECT   apellido||', '||nombre as ayn
                     FROM reloj.agentes 
                     WHERE legajo = $legajo_aut";
        $d = toba::db('comision')->consultar ($sql);
        //ei_arbol($d);
        return $d;
+	}
+	static function lis_descripciones()
+	{	$usuario = toba::usuario()-> get_id();
+	   	$sql = "SELECT a.legajo legajo,apellido,nombre from reloj.agentes_mail a
+			inner join reloj.agentes b on a.legajo = b.legajo
+				WHERE a.email = '$usuario' ";
+		$legajo_1 =toba::db('comision')->consultar_fila($sql);	
+		$legajo = $legajo_1['legajo'];
+		$sql = "SELECT  nombre_catedra FROM reloj.vw_catedra_agente
+		WHERE legajo = $legajo
+		ORDER BY nombre_catedra";
+		$catedra = toba::db('comision')->consultar($sql);
+		$sql = "SELECT distinct departamento nombre_catedra FROM reloj.vw_directores
+				where legajo_dir = $legajo";
+		$depto = toba::db('comision')->consultar($sql);
+		
+		$resultado= array_merge($catedra,$depto);
+		for ($i = 0; $i< count($resultado); $i++){
+			$resultado[$i]['item'] = $i;
+		}
+		
+		return $resultado;
 	}
 
 }

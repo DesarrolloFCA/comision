@@ -2,346 +2,298 @@
 class comision extends toba_ci
 {
 	protected $s__datos;
+	protected $s__agentes;
 	//-----------------------------------------------------------------------------------
 	//---- formulario -------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------
 
 	function conf__formulario(toba_ei_formulario $form)
 	{
-		
-		include ("usuario_logueado.php");
-		$legajo = usuario_logueado::get_legajo(toba::usuario()-> get_id());
-			
+
+		include("usuario_logueado.php");
+		$legajo = usuario_logueado::get_legajo(toba::usuario()->get_id());
+
 		$this->$s__agentes = $legajo;
 		$datos['legajo'] = $legajo[0]['legajo'];
-		$datos['apellido']=$legajo[0]['apellido'];
-		$datos['nombre'] = $legajo [0]['nombre'];
-		$form ->set_datos($datos);
+		$datos['apellido'] = $legajo[0]['apellido'];
+		$datos['nombre'] = $legajo[0]['nombre'];
+		$form->set_datos($datos);
 		if ($this->dep('datos')->esta_cargada()) {
 			$form->set_solo_lectura('id_decreto');
 			$form->set_solo_lectura('id_motivo');
 			$form->set_solo_lectura('id_articulo');
-			//$form->set_datos($this->dep('datos')->tabla('parte')->get());
-		} // else {
-		//    $this->pantalla()->eliminar_evento('eliminar');
-		//}
+		}
 	}
 
 	function evt__formulario__alta($datos)
 	{
-		//ei_arbol($datos);
-		if ($datos['fecha'] <= $datos['fecha_fin'])
-		{
-			$fecha=$datos['fecha'];    
-			$fecha_fin=date('d/m/Y',strtotime($datos['fecha_fin']));
-			$legajo=$datos['legajo'];
-			$superior=$datos['superior'];
-			$autoridad=$datos['autoridad'];
-			$lugar=$datos['lugar'];
-			$catedra=$datos['catedra'];
-			$sql= "SELECT nombre_catedra FROM reloj.catedras 
-				Where id_catedra =$catedra";
-			$a = toba::db('comision')->consultar($sql);
-			$datos['catedra']= $a[0]['nombre_catedra'];
-			$horario=$datos['horario'];
-			$obs=$datos['observaciones'].' ';
-			$motivo= $datos['motivo'];
+		
+		if ($datos['fecha'] <= $datos['fecha_fin']) {
+			// Preparar datos
+			
+			//$fecha = $datos['fecha'];
+			//$fecha_fin = $datos['fecha_fin'];
+			$fecha = new DateTime($datos['fecha']);
+			$fecha_fin = new DateTime($datos['fecha_fin']);
+		//	$fecha_fin->modify('+1 day');
+			$dias_seleccionados = !empty($datos['dias']) ? $datos['dias'] : [1, 2, 3, 4, 5,6,7];
+			$intervalo = new DateInterval('P1D');
+			$fecha_fin_mod = (clone $fecha_fin)->add(new DateInterval('P1D'));
+			$periodo = new DatePeriod($fecha, $intervalo, $fecha_fin_mod);
+			
+			$legajo = $datos['legajo'];
+			$superior = $datos['superior'];
+			$autoridad = $datos['autoridad'];
+			$lugar = $datos['lugar'];
+			$catedra = $datos['catedra'];
+			$horario = $datos['horario'];
+			$horario_fin = $datos['horario_fin'];
+			$obs = $datos['observaciones'] . ' ';
+			$motivo = $datos['motivo'];
 			$fuera = $datos['fuera'];
-			//$datos['fecha_fin'] = $fecha_fin;
+			
+			
 
-			
-		
-			if ($fuera == 1) 
-			{
-				
-				$f = 'true';
-			}else
-			{
-				$f = 'false';
-			}
-			
-			$horario_fin=$datos['horario_fin'];
-			
-			//ei_arbol ($datos);
-			if (!empty ($datos['legajo'])){
-				//$correo_agente = $this->dep('mapuche')->get_legajos_email($datos['legajo']);
-				$correo_agente=$this->dep('datos')->tabla('agentes_mail')->get_correo($datos['legajo']);
-				$datos['agente']=$correo_agente[0]['descripcion'];
-		//    ei_arbol ($correo_agente);
-			}
-			if (!empty ($datos['superior'])){
-			//	$correo_sup = $this->dep('mapuche')->get_legajos_email($datos['superior']);
-				$correo_sup=$this->dep('datos')->tabla('agentes_mail')->get_correo($datos['superior']);
-				$datos['superior']=$correo_sup[0]['descripcion'];
-			}
-			if (!empty ($datos['legajo_autoridad'])){
-		//		$correo_aut = $this->dep('mapuche')->get_legajos_email($datos['autoridad']);
-				$correo_aut=$this->dep('datos')->tabla('agentes_mail')->get_correo($datos['autoridad']);
-			$datos['autoridad']=$correo_aut[0]['descripcion'];
-			}
-			$agente= $this -> dep('mapuche')->get_legajo_todos($legajo); 
-			$datos['descripcion']= $agente[0]['descripcion'];
-			$this->s__datos = $datos;
-			//ei_arbol($datos);
-			//ei_arbol($correo_sup);
-			if (!empty ($datos['legajo'])){
-			$this->enviar_correos($datos['agente']);
-			$this->enviar_correos_sup($datos['superior']);
-		
-			}
-			ei_arbol($correo_sup);
-			/*if (!empty ($datos['legajo_sup'])){
-				
-			}
-			/*if (!empty ($datos['legajo_aut'])){
-			$this->enviar_correos_sup($correo_aut[0]['email']);
+			/*if ($datos['fuera'] == 1){
+				$fuera = true;
+			} else {
+				$fuera = false;
+				ei_arbol($fuera);
 			}*/
-		
-			$sql = "INSERT INTO reloj.comision
-				(legajo, catedra, lugar, motivo, fecha, horario, observaciones, legajo_sup, legajo_aut,  fecha_fin, horario_fin, fuera) VALUES
-					($legajo, $catedra, '$lugar', '$motivo','$fecha', '$horario', '$obs', $superior, $autoridad,'$fecha_fin','$horario_fin',$f);";
-		
-			toba::db('comision')->ejecutar($sql);
-		
-			if($datos['fuera'] == 1){
-			toba::notificacion()->agregar('Si viaja fuera de la provincia de Mendoza diríjase a la oficina de Personal para tramitar su seguro', 'info');
+
+			
+			switch ($superior){
+				case 1 : $superior = 20428;
+				break;
+				case 3 : $superior = 26629;
+				break;
+				case 4 : $superior = 26118;
+				break;
+				case 9 : $superior=29960;
+				break;
+				case 5 : $superior = 28840;
+				break;
+				case 6: $superior = 29956;
+				break;
+				case 7: $superior = 25153;
+				break;
+				case 8: $superior = 27443;
+				break;
+				default : $superior;
 			}
-		} else
-		{    
-			toba::notificacion()->agregar('Coloqu&ecute una fecha hasta mayor o igual que la fecha desde', 'error');
+			 	
+			
+			$fecha_stri = $fecha_str = $fecha->format('Y-m-d');
+			$fecha_fin_stri = $fecha_fin->format('Y-m-d');
+			
+			// Obtener nombre de la cátedra
+			$sql = "SELECT nombre_catedra FROM reloj.catedras WHERE id_catedra = $catedra";
+			$a = toba::db('comision')->consultar($sql);
+			$datos['catedra'] = $a[0]['nombre_catedra'];
+			$comision_pedida=0;
+			// Verificar si ya existe una comisión pedida
+			$sql = "SELECT legajo, fecha, fecha_fin FROM reloj.comision
+					WHERE legajo = $legajo
+					AND fecha BETWEEN '$fecha_stri' AND '$fecha_fin_stri'
+					and horario = '$horario'
+					and horario_fin = '$horario_fin'
+					AND catedra = $catedra
+					AND (pasada IS NULL OR pasada = true)";
+			$comision_pedida = count(toba::db('comision')->consultar($sql));
+
+			$sql = "Select id_parte from reloj.parte
+				where legajo = $legajo and fecha_inicio_licencia = '$fecha_stri' and id_motivo = 56";
+			$comision_pedida = $comision_pedida +count(toba::db('comision')->consultar($sql));
+	
+			if ($comision_pedida == 0) {
+				// Obtener correos electrónicos
+				$correo_agente = !empty($datos['legajo']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['legajo'])[0]['descripcion'] : null;
+				$correo_sup = !empty($datos['superior']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['superior'])[0]['descripcion'] : null;
+		//		$correo_aut = !empty($datos['legajo_autoridad']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['autoridad'])[0]['descripcion'] : null;
+	
+				// Obtener descripción del agente
+				$agente = $this->dep('mapuche')->get_legajo_todos($legajo);
+				$datos['descripcion'] = $agente[0]['descripcion'];
+				$this->s__datos = $datos;
+				
+				
+				
+				// Insertar nueva comisión
+				foreach ($periodo as $fecha_actual) {
+    				$dia_semana = (int)$fecha_actual->format('N'); // 1 (lunes) a 7 (domingo)
+    				if (in_array($dia_semana, $dias_seleccionados)) {
+        				$fecha_str = $fecha_actual->format('Y-m-d');
+						$resultado = false;
+				
+            		$sql = "INSERT INTO reloj.comision
+        			    	(legajo, catedra, lugar, motivo, fecha, horario, observaciones, legajo_sup, legajo_aut, fecha_fin, horario_fin, fuera)
+            				VALUES
+            				($legajo, $catedra, '$lugar', '$motivo', '$fecha_str', '$horario', '$obs', $superior, $autoridad, '$fecha_str', '$horario_fin', $fuera)";
+		
+       					$resultado = toba::db('comision')->ejecutar($sql);
+    				}
+				}	
+				if ($resultado) {
+					// Enviar correos electrónicos
+						if ($correo_agente) {
+							$this->enviar_correos($correo_agente);
+						}
+						if ($correo_sup) {
+							$this->enviar_correos_sup($correo_sup);
+						}
+							toba::notificacion()->agregar('Su solicitud ha sido ingresada.', 'info');
+						if ($fuera) {
+							toba::notificacion()->agregar('Si viaja fuera de la provincia de Mendoza diríjase a la oficina de Personal para tramitar su seguro', 'info');
+						}
+					} else {
+						toba::notificacion()->agregar('Error al insertar la comisión en la base de datos', 'error');
+					}
+				
+			} else {
+				toba::notificacion()->agregar('Ud. ya ha solicitado una comisión para las fechas y horas consignadas', 'error');
+			}
+		 } else {
+			toba::notificacion()->agregar('Coloque una fecha hasta mayor o igual que la fecha desde', 'error');
 		}
-		
+	
 	}
 
-	function evt__formulario__modificacion($datos)
-	{
-		
-		
-
-		//$this->dep('datos')->tabla('comision')->set($datos);
-	}
-
-	function evt__formulario__cancelar()
-	{
-	}
 	function enviar_correos($correo)
 	{
-		require_once('3ros/phpmailer/class.phpmailer.php');
+		require_once('mail/tobamail.php');
 
-				$datos =$this-> s__datos;    
-				
-//ei_arbol ($correo);                
-		$mail = new phpmailer();
-		$mail->IsSMTP();
-//Esto es para activar el modo depuración. En entorno de pruebas lo mejor es 2, en producción siempre 0
-// 0 = off (producción)
-// 1 = client messages
-// 2 = client and server messages
-$mail->SMTPDebug  = 0;
-//Ahora definimos gmail como servidor que aloja nuestro SMTP
-$mail->Host       = 'smtp.gmail.com';
-//El puerto será el 587 ya que usamos encriptación TLS
-$mail->Port       = 587;
-//Definmos la seguridad como TLS
-$mail->SMTPSecure = 'tls';
-//Tenemos que usar gmail autenticados, así que esto a TRUE
-$mail->SMTPAuth   = true;
+		$datos = $this->s__datos;
 
-//Definimos la cuenta que vamos a usar. Dirección completa de la misma
-//Leo: cambiamos de cuenta porque la hackearon esta esta contraseña para aplicaciones
-$mail->Username   = "formularios_asistencia@fca.uncu.edu.ar";
-//Introducimos nuestra contraseña de gmail
-$mail->Password   = "gvcghltncpblkjbl";
-//Definimos el remitente (dirección y, opcionalmente, nombre)
-$mail->SetFrom('formularios_asistencia@fca.uncu.edu.ar', 'Formulario Personal');
-//Esta línea es por si queréis enviar copia a alguien (dirección y, opcionalmente, nombre)
+		$hacia = $correo;
+		$asunto = 'Formulario Comision de Servicio';
+		//$fecha = date('d/m/Y', strtotime($datos['fecha']));
+		//$fecha_fin = date('d/m/Y', strtotime($datos['fecha_fin']));
+		$fecha_inicio_raw = $datos['fecha'];
+		$fecha_fin_raw = $datos['fecha_fin'];
+		$fecha = date('d/m/Y', strtotime($fecha_inicio_raw));
+		$fecha_fin = date('d/m/Y', strtotime($fecha_fin_raw));
+		$texto_dias = '';
+		$es_mismo_dia = ($fecha_inicio_raw === $fecha_fin_raw);
+		$fecha_inicio = new DateTime($datos['fecha']);
+		$fecha_fin = new DateTime($datos['fecha_fin']);
 
-//$mail->AddReplyTo('caifca@fca.uncu.edu.ar','El de la réplica');
-//Y, ahora sí, definimos el destinatario (dirección y, opcionalmente, nombre)
-//$mail -> AddAddress('ebermejillo@fca.uncu.edu.ar', 'Tester');
-$mail->AddAddress($correo, 'El Destinatario'); //Descomentar linea cuando pase a produccion
-//Definimos el tema del email
-$mail->Subject = 'Formulario Comision de Servicio';
-//Para enviar un correo formateado en HTML lo cargamos con la siguiente función. Si no, puedes meterle directamente una cadena de texto.
-//$mail->MsgHTML(file_get_contents('correomaquetado.html'), dirname(ruta_al_archivo));
-//Y por si nos bloquean el contenido HTML (algunos correos lo hacen por seguridad) una versión alternativa en texto plano (también será válida para lectores de pantalla)
-$mail->IsHTML(true); //el mail contiene html
-	$fecha=date('d/m/Y',strtotime($datos['fecha']) );
-	$fecha_fin =date('d/m/Y',strtotime($datos['fecha_fin']));
-	
-	$body = '<table>
-						El/la agente  <b>'. $datos['descripcion'].'</b> perteneciente a  <b>'.$datos['catedra'].'</b>.<br/>
-						Solicita <b>Comision de Servicio</b> a realizarse el dia '.$fecha.' hasta el dia ' .$fecha_fin. '
-						en ' .$datos['lugar']. ' a partir de la hora ' .$datos['horario'].' hasta la hora '.$datos['horario_fin'].' con el siguiente motivo de: '.$datos['motivo'].'  observaciones: ' .$datos['observaciones']. '
-											
-			</table>'; 
-$mail->Body = $body;
-//ei_arbol($body);
-//Enviamos el correo
- 
-	if(!$mail->Send()) {
-	echo "Error: " . $mail->ErrorInfo;
-	} else {
-	echo "Enviado!";
+		$fecha = $fecha_inicio->format('d/m/Y');
+		$fecha_fin_str = $fecha_fin->format('d/m/Y');
+		if (!$es_mismo_dia) {
+	    	if (!empty($datos['dias']) && is_array($datos['dias'])) {
+    	    	$dias_texto = $this->obtener_nombres_dias($datos['dias']);
+        		$texto_dias = ' en los días seleccionados: <b>' . $dias_texto . '</b>';
+    		} else {
+        		$texto_dias = ' en días hábiles (lunes a viernes)';
+    		}
+		}
+		
+		
+		$cuerpo = '<table>
+    				El/la agente <b>' . $datos['descripcion'] . '</b> perteneciente a <b>' . $datos['catedra'] . '</b>.<br/>
+    				Solicita <b>Comisión de Servicio</b> a realizarse ';
+
+					if ($es_mismo_dia) {
+    					$cuerpo .= 'el día <b>' . $fecha . '</b>';
+					} else {
+    				$cuerpo .= 'desde el día <b>' . $fecha . '</b> hasta el día <b>' . $fecha_fin_str . '</b>' . $texto_dias;
+					}
+
+					$cuerpo .= ',<br/>en <b>' . $datos['lugar'] . '</b> a partir de la hora <b>' . $datos['horario'] . '</b> hasta la hora <b>' . $datos['horario_fin'] . '</b>,<br/>
+					con el siguiente motivo: <b>' . $datos['motivo'] . '</b>.<br/>Observaciones: ' . $datos['observaciones'] . '
+				</table>';
+
+		//Enviamos el correo
+
+		$mail = new TobaMail($hacia, $asunto, $cuerpo, $desde, ['asistencia@fca.uncu.edu.ar']);
+
+		// Agregar un archivo adjunto
+		//$mail->agregarAdjunto('nombre_archivo.pdf', '/ruta/al/archivo/nombre_archivo.pdf');
+
+		try {
+			$mail->ejecutar();
+			echo "Correo enviado exitosamente.<br>";
+		} catch (Exception $e) {
+			echo "Error al enviar el correo: " . $e->getMessage();
+		}
 	}
-}
+
+
+
 	function enviar_correos_sup($correo)
 	{
-		require_once('3ros/phpmailer/class.phpmailer.php');
+		require_once('mail/tobamail.php');
 
-				$datos =$this-> s__datos;    
-				
-//ei_arbol ($correo);                
-		$mail = new phpmailer();
-		$mail->IsSMTP();
-//Esto es para activar el modo depuración. En entorno de pruebas lo mejor es 2, en producción siempre 0
-// 0 = off (producción)
-// 1 = client messages
-// 2 = client and server messages
-$mail->SMTPDebug  = 0;
-//Ahora definimos gmail como servidor que aloja nuestro SMTP
-$mail->Host       = 'smtp.gmail.com';
-//El puerto será el 587 ya que usamos encriptación TLS
-$mail->Port       = 587;
-//Definmos la seguridad como TLS
-$mail->SMTPSecure = 'tls';
-//Tenemos que usar gmail autenticados, así que esto a TRUE
-$mail->SMTPAuth   = true;
-//Definimos la cuenta que vamos a usar. Dirección completa de la misma
-//Leo: cambiamos de cuenta porque la hackearon esta esta contraseña para aplicaciones
-$mail->Username   = "formularios_asistencia@fca.uncu.edu.ar";
-//Introducimos nuestra contraseña de gmail
-$mail->Password   = "gvcghltncpblkjbl";
-//Definimos el remitente (dirección y, opcionalmente, nombre)
-$mail->SetFrom('formularios_asistencia@fca.uncu.edu.ar', 'Formulario Personal');
-//Esta línea es por si queréis enviar copia a alguien (dirección y, opcionalmente, nombre)
+		$datos = $this->s__datos;
 
-//$mail->AddReplyTo('caifca@fca.uncu.edu.ar','El de la réplica');
-//Y, ahora sí, definimos el destinatario (dirección y, opcionalmente, nombre)
-$mail -> AddAddress($correo, 'Superior');
-//$mail->AddAddress($correo, 'El Destinatario'); //Descomentar linea cuando pase a produccion
-//Definimos el tema del email
-$mail->Subject = 'Formulario Comision de Servicio - Agente';
-//Para enviar un correo formateado en HTML lo cargamos con la siguiente función. Si no, puedes meterle directamente una cadena de texto.
-//$mail->MsgHTML(file_get_contents('correomaquetado.html'), dirname(ruta_al_archivo));
-//Y por si nos bloquean el contenido HTML (algunos correos lo hacen por seguridad) una versión alternativa en texto plano (también será válida para lectores de pantalla)
-$mail->IsHTML(true); //el mail contiene html
-	$fecha=date('d/m/Y',strtotime($datos['fecha']) );
-	$fecha_fin =date('d/m/Y',strtotime($datos['fecha_fin']));
-	
-	$body = '<table>
-						El/la agente  <b>'. $datos['descripcion'] .'</b> perteneciente a la catedra/oficina/ direccion <b>'.$datos['catedra'].'</b>.<br/>
-						Solicita <b>Comision de Servicio</b> con motivo de '.$datos['motivo'].' a realizarse el dia '.$fecha.' hasta el dia' .$fecha_fin. '
-						en ' .$datos['lugar']. ' a partir de la hora ' .$datos['horario'].' hasta la hora '.$datos['horario_fin'].'. Teniendo en cuenta las siguientes Observaciones: ' .$datos['observaciones']. '</br>
-						En caso de rechazar la solicitud del agente, debera enviar un correo a la siguiente direccion: asistencia@fca.uncu.edu.ar </br>
+		$asunto = 'Formulario Comisión de Servicio - Agente';
+		//$fecha = date('d/m/Y', strtotime($datos['fecha']));
+		//$fecha_fin = date('d/m/Y', strtotime($datos['fecha_fin']));
+		$fecha_inicio_raw = $datos['fecha'];
+		$fecha_fin_raw = $datos['fecha_fin'];
+		$fecha = date('d/m/Y', strtotime($fecha_inicio_raw));
+		$fecha_fin = date('d/m/Y', strtotime($fecha_fin_raw));
+		$texto_dias = '';
+		$es_mismo_dia = ($fecha_inicio_raw === $fecha_fin_raw);
+		$fecha_inicio = new DateTime($datos['fecha']);
+		$fecha_fin = new DateTime($datos['fecha_fin']);
 
-
-											
-			</table>'; //date("d/m/y",$fecha)
-$mail->Body = $body;
-//Enviamos el correo
-if(!$mail->Send()) {
-	echo "Error: " . $mail->ErrorInfo;
-} else {
-	echo "Enviado!";
-}
-		/*$mail = new phpmailer();
-		$mail->Mailer = "smtp";
-		$mail->Host = "smtp.gmail.com";
-		$mail->SMTPAuth = false;
-		$mail->Username = "mmolina@fca.uncu.edu.ar";
-		$mail->Password = "***";
-		$mail->From = "Personal";
-		$mail->FromName = "mmolina@fca.uncu.edu.ar";
-		$mail->Timeout = 30;
-		$mail->IsHTML(true);
-		$mail->security = "tls";
-		$mail->port = 587;
-			$mail->AddAddress($correo['email']);
-			$body = '<style type="text/css">
-					.tg  {border-collapse:collapse;border-spacing:0;border-color:#9ABAD9;}
-					.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-top-width:1px;border-bottom-width:1px;border-color:#9ABAD9;color:#444;background-color:#EBF5FF;}
-					.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-top-width:1px;border-bottom-width:1px;border-color:#9ABAD9;color:#fff;background-color:#409cff;}
-					.tg .tg-1wig{font-weight:bold;text-align:left;vertical-align:top}
-					.tg .tg-by3v{font-weight:bold;font-size:14px;text-align:center}
-					.tg .tg-md4w{background-color:#D2E4FC;text-align:left}
-					.tg .tg-5ua9{font-weight:bold;text-align:left}
-					.tg .tg-j92e{background-color:#D2E4FC;font-size:15px;text-align:left;vertical-align:top}
-					</style>
-					<table class="tg">
-						<tr>
-						<th class="tg-5ua9">' . $correo['descripcion'].' </th> 
-						</tr>
-						
-					</table>';
-		//$mail->PluginDir = "";
-//Asignamos asunto y cuerpo del mensaje
-		$mail->Subject = "Comisión de Servicio - FCA";
-		$mail->Body = $body;
-//Definimos AtBody por si el destinatario del correo no admite email con formato html
-		$mail->AltBody = $body;
-//se envia el mensaje, si no ha habido problemas
-//la variable $exito tendra el valor true
-		$exito = $mail->Send();
-		$intentos = 1;
-		while ((!$exito) && ($intentos < 3)) {
-			sleep(1);
-			toba::notificacion()->agregar("El servidor de correo informó un error<br>" . $mail->ErrorInfo);
-			$exito = $mail->Send();
-			$intentos = $intentos + 1;
+		$fecha = $fecha_inicio->format('d/m/Y');
+		$fecha_fin_str = $fecha_fin->format('d/m/Y');
+		if (!$es_mismo_dia) {
+	    	if (!empty($datos['dias']) && is_array($datos['dias'])) {
+    	    	$dias_texto = $this->obtener_nombres_dias($datos['dias']);
+        		$texto_dias = ' en los días seleccionados: <b>' . $dias_texto . '</b>';
+    		} else {
+        		$texto_dias = ' en días hábiles (lunes a viernes)';
+    		}
 		}
-		if (!$exito) {
-			toba::notificacion()->agregar("El servidor de correo informó un error<br>" . $mail->ErrorInfo);
+		$cuerpo = '<table>
+    		El/la agente <b>' . $datos['descripcion'] . '</b> perteneciente a la catedra/oficina/dirección <b>' . $datos['catedra'] . '</b>.<br/>
+    		Solicita <b>Comisión de Servicio</b> con motivo de <b>' . $datos['motivo'] . '</b> a realizarse ';
+
+		if ($es_mismo_dia) {
+			$cuerpo .= 'el día <b>' . $fecha . '</b>';
 		} else {
+			$cuerpo .= 'desde el día <b>' . $fecha . '</b> hasta el día <b>' . $fecha_fin_str . '</b>' . $texto_dias;
+		}
 
-//toba::notificacion()->agregar("Correo enviado correctamente","info");
-		}    
-			//---------------------------------------------------------------------
+		$cuerpo .= ',<br/>en <b>' . $datos['lugar'] . '</b> a partir de la hora <b>' . $datos['horario'] . '</b> hasta la hora <b>' . $datos['horario_fin'] . '</b>.<br/>
+    			Teniendo en cuenta las siguientes Observaciones: ' . $datos['observaciones'] . '<br/>
+    			Para aprobar/rechazar la solicitud ingresar a <a href="https://sistemas.fca.uncu.edu.ar/solicitudes" target="_blank">https://sistemas.fca.uncu.edu.ar/solicitudes</a>, menú autorizaciones -> Comisiones.<br/>
+			</table>';
 
-				//Completamos parametros que se envian con la funcion de envio de mensajes por email -----------------    
-			/*    $email_destino =  'mmolina@fca.uncu.edu.ar';  //$datos['email'];                         
-				$parametros['correo_destino']           = $email_destino; 
-				#$parametros['reply_email']              = $vendedor['email_contacto']; 
-				#$parametros['reply_nombre']             = $vendedor['razon_vendedor']; 
+		//Enviamos el correo
+		$mail = new TobaMail($correo, $asunto, $cuerpo, $desde, '');
 
-				
-				$parametros['asunto']                   = $datos['nombre_completo'].' - Comisión de Servicio'; 
-				$parametros['contenido_mensaje']        = '<div>
-										<p></p> 
-										<p>DETALLE ASISTENCIA:</p>
-										<p></p> 
-							</div>';
+		// Agregar un archivo adjunto
+		//$mail->agregarAdjunto('nombre_archivo.pdf', '/ruta/al/archivo/nombre_archivo.pdf');
 
-				$parametros['encabezado_mensaje']      = 'Asistencia desde el '.$fecha_desde.', hasta el '.$fecha_hasta;
-				/*$parametros['encabezado_mensaje_txt']  = strip_tags($parametros['encabezado_mensaje']);                                                                
-				$parametros['contenido_mensaje_txt']   = strip_tags($parametros['contenido_mensaje']);
-
-				#$parametros['adjunto1']                = $path.$nombre_fichero;
-				#$parametros['correo_copia']           = $vendedor['email_contacto'];
-				$parametros['correo_copia_oculta']     = $vendedor['email_contacto'];*/
-
-				/*try {
-					//$this->enviar_mail($parametros);
-					toba::notificacion()->agregar("El mensaje se ha enviado correctamente al correo ".$email_destino.".", "info");
-
-				} catch (Exception $e) {
-
-					$error = 'Excepción capturada: '.$e->getMessage();
-					toba::notificacion()->agregar($error, "error");
-
-					$error = "Problemas enviando correo electrónico.<br/>".$mail->ErrorInfo;
-					toba::notificacion()->agregar($error, "error");
-				}*/
-
-				//---------------------------------------------------------------------------------------------------
-			
-
-		
-		
-
+		try {
+			$mail->ejecutar();
+			echo "Correo enviado exitosamente.<br>";
+		} catch (Exception $e) {
+			echo "Error al enviar el correo: " . $e->getMessage();
+		}
 	}
-
-	
-
+	function obtener_nombres_dias($dias_numeros) {
+    $nombres = [
+        1 => 'lunes',
+        2 => 'martes',
+        3 => 'miércoles',
+        4 => 'jueves',
+        5 => 'viernes',
+        6 => 'sábado',
+        7 => 'domingo'
+    ];
+    // Ordenar de lunes a domingo
+    sort($dias_numeros);
+    $nombres_dias = [];
+    foreach ($dias_numeros as $d) {
+        if (isset($nombres[$d])) {
+            $nombres_dias[] = $nombres[$d];
+        }
+    }
+    return implode(', ', $nombres_dias);
 }
-?>
+}

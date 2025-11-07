@@ -27,7 +27,7 @@ class TobaMail
     protected $reply_to;
     protected $confirmacion;
     protected $nombre_conf = null;
-    protected $config_file = '/usr/local/proyectos/comision/php/mail/formularios_asistencia.json';
+    protected $config_file = '/var/local/test/vendor/siu-toba/framework/proyectos/comision/php/mail/formularios_asistencia.json';
 
     /**
      * Constructor de la clase

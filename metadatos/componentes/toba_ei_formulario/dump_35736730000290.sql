@@ -16,8 +16,8 @@ INSERT INTO apex_objeto (proyecto, objeto, anterior, identificador, reflexivo, c
 	'toba', --clase_proyecto
 	'toba_ei_formulario', --clase
 	'35736730000002', --punto_montaje
-	NULL, --subclase
-	NULL, --subclase_archivo
+	'form_ci_permisohorario', --subclase
+	'permiso_horario/form_ci_permisohorario.php', --subclase_archivo
 	NULL, --objeto_categoria_proyecto
 	NULL, --objeto_categoria
 	'Permiso Horario - formulario', --nombre
@@ -65,13 +65,13 @@ INSERT INTO apex_objeto_eventos (proyecto, evento_id, objeto, identificador, eti
 	'0', --implicito
 	'0', --defecto
 	NULL, --display_datos_cargados
-	'no_cargado', --grupo
+	'cargado', --grupo
 	NULL, --accion
 	NULL, --accion_imphtml_debug
 	NULL, --accion_vinculo_carpeta
 	NULL, --accion_vinculo_item
 	NULL, --accion_vinculo_objeto
-	NULL, --accion_vinculo_popup
+	'0', --accion_vinculo_popup
 	NULL, --accion_vinculo_popup_param
 	NULL, --accion_vinculo_target
 	NULL, --accion_vinculo_celda
@@ -104,7 +104,7 @@ INSERT INTO apex_objeto_eventos (proyecto, evento_id, objeto, identificador, eti
 	NULL, --accion_vinculo_carpeta
 	NULL, --accion_vinculo_item
 	NULL, --accion_vinculo_objeto
-	NULL, --accion_vinculo_popup
+	'0', --accion_vinculo_popup
 	NULL, --accion_vinculo_popup_param
 	NULL, --accion_vinculo_target
 	NULL, --accion_vinculo_celda
@@ -574,7 +574,7 @@ INSERT INTO apex_objeto_ei_formulario_ef (objeto_ei_formulario_fila, objeto_ei_f
 	'35736730000290', --objeto_ei_formulario
 	'comision', --objeto_ei_formulario_proyecto
 	'horario_incio', --identificador
-	'ef_editable', --elemento_formulario
+	'ef_editable_hora', --elemento_formulario
 	'horario_incio', --columnas
 	'1', --obligatorio
 	'0', --oculto_relaja_obligatorio
@@ -655,7 +655,7 @@ INSERT INTO apex_objeto_ei_formulario_ef (objeto_ei_formulario_fila, objeto_ei_f
 	'35736730000290', --objeto_ei_formulario
 	'comision', --objeto_ei_formulario_proyecto
 	'horario_fin', --identificador
-	'ef_editable', --elemento_formulario
+	'ef_editable_hora', --elemento_formulario
 	'horario_fin', --columnas
 	'1', --obligatorio
 	'0', --oculto_relaja_obligatorio
