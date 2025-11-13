@@ -44,7 +44,7 @@ class ci_incio extends comision_ci
 		for ($i = 0; $i < $j; $i++) {
 			if ($this->s__datos[$i]['estado'] <> 'Ausente Justificado') {
 				list($horas, $minutos, $segundos) = explode(":", $this->s__datos[$i]['horas_trabajadas']);
-				$minu = intval($horas * 60) + (intval($minutos));
+				$minu = (intval($horas) * 60) + (intval($minutos));
 				$datos_1[] = round($minu / 60, 2);
 			}
 		}
@@ -52,7 +52,7 @@ class ci_incio extends comision_ci
 		$prom_hora = round(array_sum($datos_1) / (count($datos_1) - 1), 2);
 
 		list($hora, $minuto, $segundos) = explode(":", $this->s__datos[0]['horas_requeridad']);
-		$minut = intval($hora * 60) + intval($minuto);
+		$minut = (intval($hora) * 60) + intval($minuto);
 		$horas_requ = round($minut / 60, 2);
 		//$horas_cumpli = ($prom_hora/$horas_requ) *100;
 		$max = intval($horas_requ) + 2;
@@ -139,10 +139,10 @@ class ci_incio extends comision_ci
 		$j = count($this->s__datos);
 		for ($i = 0; $i < $j; $i++) {
 			list($horas, $minutos, $segundos) = explode(":", $this->s__datos[$i]['horas_trabajadas']);
-			$minu = intval($horas * 60) + (intval($minutos));
+			$minu = (intval($horas) * 60) + (intval($minutos));
 			$datos_1[] = round($minu / 60, 2);
 			list($hora, $minuto, $segundos) = explode(":", $this->s__datos[$i]['horas_requeridad']);
-			$minut = intval($hora * 60) + intval($minuto);
+			$minut = (intval($hora) * 60) + intval($minuto);
 			$datos_2[] = round($minut / 60, 2);
 			list($anio, $mes, $dia) = explode("-", $this->s__datos[$i]['fecha']);
 			$dias[] = $dia; //.'/' . $mes;
