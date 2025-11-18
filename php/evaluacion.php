@@ -8,8 +8,8 @@ $sql = "SELECT count(*) as cant_doc from reloj.agentes
 $cantidad = toba::db('comision')->consultar_fila($sql);
 
 if ($cantidad['cant_doc'] > 0){
-$url = 'http://localhost:7008/ctrl_asis/1.0';
-echo '<a href="' . $url . '" target="_blank">Ir al sistema de asistencia</a>';
+$url = 'https://idd.fca.uncu.edu.ar/pruebas/';
+echo '<a href="' . $url . '" target="_blank">Sistema de Informe de Labor Docente</a>';
 } else {
     echo 'Ud no es personal DOCENTE';
 }
