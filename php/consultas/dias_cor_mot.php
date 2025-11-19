@@ -1,7 +1,7 @@
 <?php
 class dias_cor_mot 
 {
-function dias_motivos_legajo($legajo,$id_motivo)
+public static function dias_motivos_legajo($legajo,$id_motivo)
 {
 	//ei_arbol($id_motivo);
 	$anio = date("Y");
@@ -117,19 +117,20 @@ function dias_motivos_legajo($legajo,$id_motivo)
 	}
 	//ei_arbol ($dias_lic);
 	return $dias_lic; 
-}
- function fecha_inicio_vac($id_motivo)
-    {
-    	
-    	if ($id_motivo == 35){
-    	$anio = date("Y");	
+	}
 
-    	$fecha_vacaciones = '26/12/'.$anio;
-    	} else {
-    	$fecha_vacaciones = date("d/m/Y");
-    	}
-    	//ei_arbol ('26/12/2023');
-    	return $fecha_vacaciones;
-    }  
+	public static function fecha_inicio_vac($id_motivo)
+	    {
+    
+	    	if ($id_motivo == 35){
+	    	$anio = date("Y");
+
+	    	$fecha_vacaciones = '26/12/'.$anio;
+	    	} else {
+	    	$fecha_vacaciones = date("d/m/Y");
+	    	}
+	    	//ei_arbol ('26/12/2023');
+	    	return $fecha_vacaciones;
+	    }  
 }
 ?>
