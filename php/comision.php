@@ -67,11 +67,11 @@ class comision extends toba_ci
 				break;
 				case 3 : $superior = 26629;
 				break;
-				case 4 : $superior = 26118;
+				case 4 : $superior = 28840;
 				break;
 				case 9 : $superior=29960;
 				break;
-				case 5 : $superior = 28840;
+				case 5 : $superior = 28500;
 				break;
 				case 6: $superior = 29956;
 				break;

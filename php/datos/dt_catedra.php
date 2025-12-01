@@ -208,7 +208,7 @@ class dt_catedra extends comision_datos_tabla
        						//ei_arbol($jefe);
        					} else {
 							if(($auto[0]['id_departamento'] == 8) and $auto[0]['id_departamento'] == 3 and $auto[0]['id_departamento'] == 5 ){
-								$leg = 26118;
+								$leg = 28840;
 								$sql = "SELECT   legajo , apellido||', '||nombre as legajo_jefe
 								FROM reloj.agentes 
 								WHERE legajo = $leg";
