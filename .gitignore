@@ -1,2 +1,5 @@
 php/mail/formularios_asistencia.json
 php/mail/lfontes.json
+php/mail/config_smtp.json
+.env
+.gitignore

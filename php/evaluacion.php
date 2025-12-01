@@ -17,7 +17,7 @@ $cantidad = toba::db('comision')->consultar_fila($sql);
 
 // Abre la URL en una nueva pestaña si es docente
 if ($cantidad['cant_doc'] > 0) {
-    $url = 'http://localhost:7008/pruebas/1.0/';
+    $url = 'http://sistemas.fca.uncu.edu.ar/informe';
     echo "<script>window.open('$url', '_blank');</script>";
     // Opcional: redirigir a otra página o cerrar la actual
     // echo "<script>window.location.href = 'otra_pagina.php';</script>";

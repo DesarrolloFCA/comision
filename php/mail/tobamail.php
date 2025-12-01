@@ -27,7 +27,7 @@ class TobaMail
     protected $reply_to;
     protected $confirmacion;
     protected $nombre_conf = null;
-    protected $config_file = '/var/local/test/vendor/siu-toba/framework/proyectos/comision/php/mail/formularios_asistencia.json';
+    protected $config_file = '/var/local/desempenio/vendor/siu-toba/framework/proyectos/comision/php/mail/config_smtp.json';
 
     /**
      * Constructor de la clase
@@ -113,6 +113,9 @@ class TobaMail
             //if ($this->datos_configuracion['auto_tls']) {
             //    $mail->SMTPAutoTLS = true;
             //}
+            // $client_id = getenv('GOOGLE_CLIENT_ID');
+            //$client_secret = getenv('GOOGLE_CLIENT_SECRET');
+            //$refresh_token = getenv('GOOGLE_REFRESH_TOKEN');
 
             $provider = new Google(
                 [
@@ -127,7 +130,7 @@ class TobaMail
                         'provider' => $provider,
                         'clientId' => $this->datos_configuracion['client_id'],
                         'clientSecret' => $this->datos_configuracion['client_secret'],
-                        'refreshToken' => $this->datos_configuracion['refresh_token'],
+                        'refreshToken' =>$this->datos_configuracion['refresh_token'],
                         'userName' => $this->datos_configuracion['username'],
                     ]
                 )
