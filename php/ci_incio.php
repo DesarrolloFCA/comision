@@ -49,7 +49,7 @@ class ci_incio extends comision_ci
 			}
 		}
 
-		$prom_hora = round(array_sum($datos_1) / (count($datos_1) - 1), 2);
+		//$prom_hora = round(array_sum($datos_1) / (count($datos_1) - 1), 2);
 
 		list($hora, $minuto, $segundos) = explode(":", $this->s__datos[0]['horas_requeridad']);
 		$minut = (intval($hora) * 60) + intval($minuto);
