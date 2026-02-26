@@ -5,6 +5,7 @@ public static function dias_motivos_legajo($legajo,$id_motivo)
 {
 	//ei_arbol($id_motivo);
 	$anio = date("Y");
+	//ei_arbol($id_motivo);
 	switch ($id_motivo) {
 		case 35 :
 			$sql= "SELECT min(dias) dias_v from reloj.antiguedad
@@ -83,31 +84,31 @@ public static function dias_motivos_legajo($legajo,$id_motivo)
 			break;	
 		case 30: //Razones particulares
 			$dias_lic [0]['dias']=1;
-			$dias_lic [0]['dias']=2;
+			$dias_lic [1]['dias']=2;
 			break;
 		case 12: //donacion de sangre
 			$dias_lic [0]['dias']=1;
 			break;
 		case 22: //deporte
-			$sql = "SELECT SUM(dias) dias_libres from reloj.parte
-			where extract(year from fecha_inicio_lic) = $anio;"
-			$dias_libres = toba::db('comision')->consultar_fila($sql);
-			$lim= 15 - $dias_libres['dias_libres'];
+			/*$sql = "SELECT SUM(dias) dias_libres from reloj.parte
+			where extract(year from fecha_inicio_lic) = $anio;";
+			$dias_libres = toba::db('comision')->consultar_fila($sql);*/
+			$lim= 15; //- $dias_libres['dias_libres'];
 			$dias_in = 0;
-			if ($dias_libres >0) {
-		 		for ($i=0;$i<=$dias_libres; $i++){
+			//if ($lim >0) {
+		 		for ($i=0;$i<=$lim; $i++){
 						$dias_lic[$i]['dias']=$dias_in;
 						$dias_in ++;
 				}  
-			} else {
+			/*} else {
 				$dias_lic[0]['dias'] = 0;
-			}
+			}*/
 			break;
 		case 49: 
 			$dias_lic[0]['dias'] = 1;
 			break;
-		case 17:
-			$dias_lic[0]['dias'] = 
+		/*case 17:
+			$dias_lic[0]['dias'] = */
 
 		default:
 		 		$dias_in = 0; 
