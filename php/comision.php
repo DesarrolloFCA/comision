@@ -85,55 +85,54 @@ class comision extends toba_ci
 			
 			$fecha_stri = $fecha_str = $fecha->format('Y-m-d');
 			$fecha_fin_stri = $fecha_fin->format('Y-m-d');
+			$fecha_1 = new DateTime($fecha_stri);
+			$fecha_2 = new DateTime($fecha_fin_stri);
+
+			$diferencia = $fecha_1->diff($fecha_2)->days;
 			
-			// Obtener nombre de la cátedra
-			$sql = "SELECT nombre_catedra FROM reloj.catedras WHERE id_catedra = $catedra";
-			$a = toba::db('comision')->consultar($sql);
-			$datos['catedra'] = $a[0]['nombre_catedra'];
-			$comision_pedida=0;
-			// Verificar si ya existe una comisión pedida
-			$sql = "SELECT legajo, fecha, fecha_fin FROM reloj.comision
+			if ($diferencia <= 5) {
+				// Obtener nombre de la cátedra
+				$sql = "SELECT nombre_catedra FROM reloj.catedras WHERE id_catedra = $catedra";
+				$a = toba::db('comision')->consultar($sql);
+				$datos['catedra'] = $a[0]['nombre_catedra'];
+				$comision_pedida=0;
+				// Verificar si ya existe una comisión pedida
+				$sql = "SELECT legajo, fecha, fecha_fin FROM reloj.comision
 					WHERE legajo = $legajo
 					AND fecha BETWEEN '$fecha_stri' AND '$fecha_fin_stri'
 					and horario = '$horario'
 					and horario_fin = '$horario_fin'
 					AND catedra = $catedra
 					AND (pasada IS NULL OR pasada = true)";
-			$comision_pedida = count(toba::db('comision')->consultar($sql));
+				$comision_pedida = count(toba::db('comision')->consultar($sql));
 
-			$sql = "Select id_parte from reloj.parte
-				where legajo = $legajo and fecha_inicio_licencia = '$fecha_stri' and id_motivo = 56";
-			$comision_pedida = $comision_pedida +count(toba::db('comision')->consultar($sql));
+				$sql = "Select id_parte from reloj.parte
+					where legajo = $legajo and fecha_inicio_licencia = '$fecha_stri' and id_motivo = 56";
+				$comision_pedida = $comision_pedida +count(toba::db('comision')->consultar($sql));
 	
-			if ($comision_pedida == 0) {
+				if ($comision_pedida == 0) {
 				// Obtener correos electrónicos
-				$correo_agente = !empty($datos['legajo']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['legajo'])[0]['descripcion'] : null;
-				$correo_sup = !empty($datos['superior']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['superior'])[0]['descripcion'] : null;
-		//		$correo_aut = !empty($datos['legajo_autoridad']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['autoridad'])[0]['descripcion'] : null;
+					$correo_agente = !empty($datos['legajo']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['legajo'])[0]['descripcion'] : null;
+					$correo_sup = !empty($datos['superior']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['superior'])[0]['descripcion'] : null;
+			//		$correo_aut = !empty($datos['legajo_autoridad']) ? $this->dep('datos')->tabla('agentes_mail')->get_correo($datos['autoridad'])[0]['descripcion'] : null;
 	
-				// Obtener descripción del agente
-				$agente = $this->dep('mapuche')->get_legajo_todos($legajo);
-				$datos['descripcion'] = $agente[0]['descripcion'];
-				$this->s__datos = $datos;
-				
-				
-				
-				// Insertar nueva comisión
-				foreach ($periodo as $fecha_actual) {
-    				$dia_semana = (int)$fecha_actual->format('N'); // 1 (lunes) a 7 (domingo)
-    				if (in_array($dia_semana, $dias_seleccionados)) {
-        				$fecha_str = $fecha_actual->format('Y-m-d');
-						$resultado = false;
-				
-            		$sql = "INSERT INTO reloj.comision
+					// Obtener descripción del agente
+					$agente = $this->dep('mapuche')->get_legajo_todos($legajo);
+					$datos['descripcion'] = $agente[0]['descripcion'];
+					$this->s__datos = $datos;
+					// Insertar nueva comisión
+					foreach ($periodo as $fecha_actual) {
+    					$dia_semana = (int)$fecha_actual->format('N'); // 1 (lunes) a 7 (domingo)
+    					if (in_array($dia_semana, $dias_seleccionados)) {
+        					$fecha_str = $fecha_actual->format('Y-m-d');
+							$resultado = false;
+							$sql = "INSERT INTO reloj.comision
         			    	(legajo, catedra, lugar, motivo, fecha, horario, observaciones, legajo_sup, legajo_aut, fecha_fin, horario_fin, fuera)
-            				VALUES
-            				($legajo, $catedra, '$lugar', '$motivo', '$fecha_str', '$horario', '$obs', $superior, $autoridad, '$fecha_str', '$horario_fin', $fuera)";
-		
-       					$resultado = toba::db('comision')->ejecutar($sql);
-    				}
-				}	
-				if ($resultado) {
+            				VALUES	($legajo, $catedra, '$lugar', '$motivo', '$fecha_str', '$horario', '$obs', $superior, $autoridad, '$fecha_str', '$horario_fin', $fuera)";
+		  					$resultado = toba::db('comision')->ejecutar($sql);
+    					}
+					}	
+					if ($resultado) {
 					// Enviar correos electrónicos
 						if ($correo_agente) {
 							$this->enviar_correos($correo_agente);
@@ -148,10 +147,12 @@ class comision extends toba_ci
 					} else {
 						toba::notificacion()->agregar('Error al insertar la comisión en la base de datos', 'error');
 					}
-				
-			} else {
-				toba::notificacion()->agregar('Ud. ya ha solicitado una comisión para las fechas y horas consignadas', 'error');
-			}
+				} else {
+					toba::notificacion()->agregar('Ud. ya ha solicitado una comisión para las fechas y horas consignadas', 'error');
+				}
+			} else{
+				toba::notificacion()->agregar('Ud. est&aacute; excediendo la cantidad de m&aacute;xima de d&iacute;as, si necesita pedir mas d&iacute;as dirijase a Personal');
+			}	
 		 } else {
 			toba::notificacion()->agregar('Coloque una fecha hasta mayor o igual que la fecha desde', 'error');
 		}

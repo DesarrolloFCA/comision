@@ -47,64 +47,67 @@ public static function dias_motivos_legajo($legajo,$id_motivo)
 			$anio_anterior = $anio - 1;
 			//ei_arbol($id_motivo);
 			$dias_tomados=0;
-			
-			/*$partes = toba::tabla('parte')->get_listado($filtro);
-					if(count($partes)>0){
-						foreach ($partes as $parte) {
-							$dias_tomados = $dias_tomados + $parte['dias'];
-						}
-					}
-			$filtro['id_motivo'] = 57;
-			$partes_pendientes = toba::tabla('parte')->get_listado($filtro);
-					if(count($partes_pendientes)>0){
-						foreach ($partes as $parte) {
-							$dias_tomados = $dias_tomados + $partes_pendientes['dias'];
-						}
-					}
-			
-			
-			$sql= "SELECT min(dias) dias_v from reloj.antiguedad
-				where legajo = $legajo";
-			$dias = toba::db('comision')->consultar($sql); // Vacaciones correspondientes por antigüedad
-		*/
+				
 			//Vacaciones por antigüedad
-			$sql = "SELECT
-			sum(t_vt.dias) as dias_restantes																																																	
-			FROM reloj.vacaciones_restantes as t_vt 
-			where t_vt.legajo = '$legajo' 
-		and t_vt.anio = '$anio_anterior' ";
-
-		$datos = toba::db('comision')->consultar_fila($sql);
-		if(is_numeric($datos['dias_restantes'])){
-			$vacaciones_restantes= $datos['dias_restantes'];
-		}else{
+			$sql = "SELECT sum(t_vt.dias) as dias_restantes																																																	
+					FROM reloj.vacaciones_restantes as t_vt 
+					where t_vt.legajo = '$legajo' 
+					and t_vt.anio = '$anio_anterior' ";
+			$datos = toba::db('comision')->consultar_fila($sql);
+			if(is_numeric($datos['dias_restantes'])){
+				$vacaciones_restantes= $datos['dias_restantes'];
+			}else{
 			$vaciones_restantes= NULL;
-		}
-					if (is_null($vacaciones_restantes)){
-						$dias_disponibles = 0;
-					}else{
-						$dias_disponibles = $vacaciones_restantes - $dias_tomados;
-					}
+			}
+			if (is_null($vacaciones_restantes)){
+				$dias_disponibles = 0;
+			}else{
+				$dias_disponibles = $vacaciones_restantes - $dias_tomados;
+			}
 				
-					//Si tiene dias disponibles, lo mostramos en el listado
-				
-					if($dias_disponibles > 0){
-						$dias_totales=$dias_disponibles;
-					} else {
-						$dias_totales = 0;
-					}	
-
-				$dias_in = 0; 
-				if ($dias_totales >0) {
+			//Si tiene dias disponibles, lo mostramos en el listado
+			if($dias_disponibles > 0){
+				$dias_totales=$dias_disponibles;
+			} else {
+				$dias_totales = 0;
+			}	
+			$dias_in = 0; 
+			if ($dias_totales >0) {
 		 		for ($i=0;$i<=$dias_totales; $i++){
-					$dias_lic[$i]['dias']=$dias_in;
-					$dias_in ++;
-					}  
-				} else {
-					$dias_lic[0]['dias'] = 0;
-				}
-				break;	
-
+						$dias_lic[$i]['dias']=$dias_in;
+						$dias_in ++;
+				}  
+			} else {
+				$dias_lic[0]['dias'] = 0;
+			}
+			break;	
+		case 30: //Razones particulares
+			$dias_lic [0]['dias']=1;
+			$dias_lic [0]['dias']=2;
+			break;
+		case 12: //donacion de sangre
+			$dias_lic [0]['dias']=1;
+			break;
+		case 22: //deporte
+			$sql = "SELECT SUM(dias) dias_libres from reloj.parte
+			where extract(year from fecha_inicio_lic) = $anio;"
+			$dias_libres = toba::db('comision')->consultar_fila($sql);
+			$lim= 15 - $dias_libres['dias_libres'];
+			$dias_in = 0;
+			if ($dias_libres >0) {
+		 		for ($i=0;$i<=$dias_libres; $i++){
+						$dias_lic[$i]['dias']=$dias_in;
+						$dias_in ++;
+				}  
+			} else {
+				$dias_lic[0]['dias'] = 0;
+			}
+			break;
+		case 49: 
+			$dias_lic[0]['dias'] = 1;
+			break;
+		case 17:
+			$dias_lic[0]['dias'] = 
 
 		default:
 		 		$dias_in = 0; 
