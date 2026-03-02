@@ -107,6 +107,7 @@ public static function dias_motivos_legajo($legajo,$id_motivo)
 		case 49: 
 			$dias_lic[0]['dias'] = 1;
 			break;
+		
 		/*case 17:
 			$dias_lic[0]['dias'] = */
 
