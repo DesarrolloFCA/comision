@@ -6,10 +6,12 @@ class ci_login extends toba_ci
 	protected $en_popup = false;
 	protected $s__item_inicio;
 	private $es_cambio_contrasenia = false;
-	
+	protected  $s__parametros_originales = array();
+        protected $redirect_hecho = false;
+
 	/**
-		* Guarda el id de la operaci�n original as� se hace una redirecci�n una vez logueado
-		*/
+	 * Guarda el id de la operaci�n original as� se hace una redirecci�n una vez logueado
+	 */
 	function ini__operacion()
 	{
 		//--- Si el usuario pidio originalmente alg�n item distinto al de login, se fuerza como item de inicio de sesi�n
@@ -18,67 +20,67 @@ class ci_login extends toba_ci
 		if (isset($item_original) && isset($item_actual) &&
 				$item_actual[1] != $item_original[1]) {
 			toba::proyecto()->set_parametro('item_inicio_sesion', $item_original[1]);
+			$this->s__parametros_originales = toba::memoria()->get_parametros_item_original();
 		}
 		$this->s__item_inicio = null;
 		if (isset($this->s__datos_openid)) {
 			unset($this->s__datos_openid);
 		}
+                //La primera vez que pasa elimina el dato
+                toba::memoria()->eliminar_dato_instancia('second_factor_complete');
 	}
 
 	function ini()
 	{
-		toba_ci::set_navegacion_ajax(false);
+            	toba_ci::set_navegacion_ajax(false);
+
+                //Pregunta si es un pedido por redirect de autenticacion o el primero.
+                $this->redirect_hecho = (toba::memoria()->get_dato('redirect_a_chequeo') == 1);
+                // Si no hay 2FA pendiente, no dejar esta marca pegada porque bloquea el redirect centralizado.
+                if (! toba::nucleo()->verifica_necesidad_2FA()) {
+                    toba::memoria()->eliminar_dato('redirect_a_chequeo');
+                    $this->redirect_hecho = false;
+                }
 		$this->en_popup = toba::proyecto()->get_parametro('item_pre_sesion_popup');
-		if (toba::instalacion()->get_tipo_autenticacion() == 'openid') {
-			try {
-				toba::manejador_sesiones()->get_autenticacion()->verificar_acceso();
-			} catch (toba_error_autenticacion $e) {
-				//-- Caso error de validaci�n
-				toba::notificacion()->agregar($e->getMessage());
-			}
-		}
-		$tipo_auth = toba::instalacion()->get_tipo_autenticacion();
-		if (toba_autenticacion::es_autenticacion_centralizada($tipo_auth)) {
-			if (! toba::manejador_sesiones()->get_autenticacion()->permite_login_toba()) {
-				$this->evt__cas__ingresar();
-			}
-		}        
+                if (! $this->redirect_hecho) {
+                    $this->chequear_acceso_centralizado();
+                }
 	}
-	
+
 	function conf__login()
 	{
 		if ( ! toba::proyecto()->get_parametro('validacion_debug') ) {
 			$this->pantalla()->eliminar_dep('seleccion_usuario');
-		}        
-		$this->eliminar_dependencias_no_usadas();                                        //Quito los forms que no uso dependiendo del tipo de autenticacion
+		}
+		$this->eliminar_dependencias_no_usadas();										//Quito los forms que no uso dependiendo del tipo de autenticacion
 		if ($this->en_popup && toba::manejador_sesiones()->existe_usuario_activo()) {
 			//Si ya esta logueado y se abre el sistema en popup, ocultar componentes visuales
-			$this->pantalla()->set_titulo('');            
+			$this->pantalla()->set_titulo('');
 			if ($this->pantalla()->existe_dependencia('seleccion_usuario')) {
 				$this->pantalla()->eliminar_dep('seleccion_usuario');
 			}
 			if ($this->pantalla()->existe_dependencia('datos')) {
 				$this->pantalla()->eliminar_dep('datos');
-			}            
+			}
 			if ($this->pantalla()->existe_evento('Ingresar')) {
 				$this->pantalla()->eliminar_evento('Ingresar');
 			}
-		}        
-	}    
-	
+		}
+	}
+
 	/**
-		* Elimina los formularios que no se usan segun el tipo de autenticacion indicado en instalacion.ini
-		*/
+	 * Elimina los formularios que no se usan segun el tipo de autenticacion indicado en instalacion.ini
+	 */
 	function eliminar_dependencias_no_usadas()
 	{
-		$tipo_auth = toba::instalacion()->get_tipo_autenticacion();    
+		$tipo_auth = toba::instalacion()->get_tipo_autenticacion();
 		switch($tipo_auth) {
 		case 'openid':
 			if (! toba::manejador_sesiones()->get_autenticacion()->permite_login_toba() && $this->pantalla()->existe_dependencia('datos')) {
 				$this->pantalla()->eliminar_dep('datos');
 			}
 			if ($this->pantalla()->existe_dependencia('cas')) {
-				$this    ->pantalla()->eliminar_dep('cas');
+				$this	->pantalla()->eliminar_dep('cas');
 			}
 			break;
 		case 'cas':
@@ -90,7 +92,7 @@ class ci_login extends toba_ci
 			if ($this->pantalla()->existe_dependencia('openid')) {
 				$this->pantalla()->eliminar_dep('openid');
 			}
-			break;                
+			break;
 		default:
 			if ($this->pantalla()->existe_dependencia('openid')) {
 				$this->pantalla()->eliminar_dep('openid');
@@ -98,21 +100,24 @@ class ci_login extends toba_ci
 			if ($this->pantalla()->existe_dependencia('cas')) {
 				$this->pantalla()->eliminar_dep('cas');
 			}
-		}    
+		}
 	}
-	
+
 	/**
-		* 
-		* @throws toba_reset_nucleo
-		* @ignore
-		*/
+	 *
+	 * @throws toba_reset_nucleo
+	 * @ignore
+	 */
 	function post_eventos()
 	{
 		if ($this->es_cambio_contrasenia) {
-			return;                        //Fuerza a que no intente loguear, sino que redirija a la pantalla de login
+			return;						//Fuerza a que no intente loguear, sino que redirija a la pantalla de login
 		}
-		try {        
+		try {
 			$this->invocar_autenticacion_por_tipo();
+                        if (toba::nucleo()->verifica_necesidad_2FA()) {
+                            $this->set_pantalla('2do_factor');
+                        }
 		} catch (toba_error_autenticacion $e) {
 			//-- Caso error de validaci�n
 			$this->resetear_marca_login();
@@ -131,50 +136,36 @@ class ci_login extends toba_ci
 			if (toba::memoria()->get_dato_instancia('toba_intentos_fallidos_login') !== null) {
 				toba::memoria()->eliminar_dato_instancia('toba_intentos_fallidos_login');
 			}
-			//-- Se redirige solo si no es popup
-			/*if (! $this->en_popup) {
-				throw $reset;
-			}*/
-			$this->s__item_inicio = $reset->get_item();    //Se guarda el item de inicio al que queria derivar el nucleo
+                        if (toba::nucleo()->verifica_necesidad_2FA()) {         //Por si entra en el reset
+                            $this->set_pantalla('2do_factor');
+                        }
+                        $this->s__item_inicio = $reset->get_item();	//Se guarda el item de inicio al que queria derivar el nucleo
 		}
 		return;
 	}
 
 	/**
-		* Hace el llamado a toba_manejador_sesiones segun el metodo indicado en instalacion.ini 
-		* y que ingreso el usuario.
-		*/
+	 * Hace el llamado a toba_manejador_sesiones segun el metodo indicado en instalacion.ini
+	 * y que ingreso el usuario.
+	 */
 	function invocar_autenticacion_por_tipo()
 	{
-		$tipo_auth = toba::instalacion()->get_tipo_autenticacion();
-		if (isset($this->s__datos['usuario']) || isset($this->s__datos_openid['provider'])) {            //Para el caso de autenticacion basica y OpenId
-			if ($tipo_auth == 'openid' && isset($this->s__datos_openid)) {
-				toba::manejador_sesiones()->get_autenticacion()->set_provider($this->s__datos_openid);
-			}
-			$usuario = (isset($this->s__datos['usuario'])) ? $this->s__datos['usuario'] : '';
-			$clave = (isset($this->s__datos['clave'])) ? $this->s__datos['clave'] : '';
+            if (! $this->redirect_hecho){
+		$this->chequear_autenticaciones_centralizadas();
+            }
+	}
 
-			if (toba_autenticacion::es_autenticacion_centralizada($tipo_auth)) {
-				toba::manejador_sesiones()->get_autenticacion()->usar_login_basico();
-			}            
-			toba::manejador_sesiones()->login($usuario, $clave);
-
-		} elseif (toba_autenticacion::es_autenticacion_centralizada($tipo_auth) && toba::manejador_sesiones()->get_autenticacion()->uso_login_centralizado()) {    //El control por session es para que no redireccione automaticamente
-			toba::manejador_sesiones()->get_autenticacion()->verificar_acceso();
-		}    
-	}    
-	
 	/**
-		* Elimina  la marca del login basico ante un fallido, de manera que si luego loguea centralizado desloguee correctamente
-		* @ignore
-		*/
+	 * Elimina  la marca del login basico ante un fallido, de manera que si luego loguea centralizado desloguee correctamente
+	 * @ignore
+	 */
 	protected function resetear_marca_login()
 	{
 		if (toba::manejador_sesiones()->get_autenticacion()->uso_login_basico()) {
 			toba::manejador_sesiones()->get_autenticacion()->eliminar_login_basico();
 		}
 	}
-	
+
 	//-------------------------------------------------------------------
 	//--- DEPENDENCIAS
 	//-------------------------------------------------------------------
@@ -185,19 +176,16 @@ class ci_login extends toba_ci
 	{
 		if (isset($this->s__datos_openid)) {
 			unset($this->s__datos_openid);
-		}        
-		toba::logger()->desactivar();
-		if (isset($datos['test_error_repetido']) && !$datos['test_error_repetido']) {
-			throw new toba_error_autenticacion('El valor ingresado de confirmaci�n no es correcto');
-		} else {
-			$this->s__datos = $datos;
 		}
+		toba::logger()->desactivar();
+		unset($datos['test_error_repetido']);
+		$this->s__datos = $datos;
 	}
-	
+
 	function conf__datos(toba_ei_formulario $form)
 	{
-		
-		if (toba::memoria()->get_dato_instancia('toba_intentos_fallidos_login') === null) {
+		if (toba::memoria()->get_dato_instancia('toba_intentos_fallidos_login') === null
+			&& $form->existe_ef('test_error_repetido')) {
 			$form->desactivar_efs(array('test_error_repetido'));
 		}
 		if (toba::instalacion()->get_tipo_autenticacion() != 'openid') {
@@ -209,25 +197,24 @@ class ci_login extends toba_ci
 			}
 			$form->set_datos($this->s__datos);
 		}
-		$url_recuperar_contrasenia = toba::vinculador()->get_url(toba_proyecto::get_id(), '1842000002');
-			$vinculo_recuperar_contrasenia = "<a href='$url_recuperar_contrasenia'>&iquest;Olvidaste tu contrase&ntilde;a </br> o sos un usuario nuevo?</a>";
-			$form->set_datos(array('recuperar_contrasenia' => $vinculo_recuperar_contrasenia));
-	}    
-	
-	function evt__datos__cambiar()
-	{
-		$this->set_pantalla('cambiar_contrasenia');
+		
+		  if (!toba::memoria()->existe_dato('ag')) {
+                          $url_recuperar_contrasenia = toba::vinculador()->get_url(toba_proyecto::get_id(), '58000001');
+              $vinculo_recuperar_contrasenia = "<a href='$url_recuperar_contrasenia";
+              $form->set_datos(array('recuperar_contrasenia' => $vinculo_recuperar_contrasenia));
+          }
 	}
 
+
 	//---- open_id -------------------------------------------------------
-	
+
 	function evt__openid__ingresar($datos)
 	{
 		if (isset($this->s__datos)) {
 			unset($this->s__datos);
-		} 
+		}
 		$this->s__datos_openid = $datos;
-	}    
+	}
 
 	function conf__openid(toba_ei_formulario $form)
 	{
@@ -239,10 +226,10 @@ class ci_login extends toba_ci
 		if (isset($this->s__datos_openid)) {
 			$form->set_datos($this->s__datos_openid);
 		}
-	}    
-	
-	
-	function get_openid_providers() 
+	}
+
+
+	function get_openid_providers()
 	{
 		return toba::manejador_sesiones()->get_autenticacion()->get_providers();
 	}
@@ -254,8 +241,8 @@ class ci_login extends toba_ci
 		try {
 			toba::manejador_sesiones()->get_autenticacion()->verificar_acceso();
 		} catch (toba_error_autenticacion $e) {
-			//-- Caso error de validaci�n                
-			toba::notificacion()->agregar($e->getMessage());    
+			//-- Caso error de validaci�n
+			toba::notificacion()->agregar($e->getMessage());
 		}
 	}
 
@@ -271,7 +258,7 @@ class ci_login extends toba_ci
 	{
 		return toba::instancia()->get_lista_usuarios();
 	}
-	
+
 	//-----------------------------------------------------------------------------------
 	//---- form_passwd_vencido ----------------------------------------------------------
 	//-----------------------------------------------------------------------------------
@@ -283,14 +270,12 @@ class ci_login extends toba_ci
 		$form->ef('clave_nueva')->set_descripcion("La clave debe tener al menos $largo_clave caracteres, entre letras may�sculas, min�sculas, n�meros y s�mbolos, no pudiendo repetir caracteres adyacentes");
 		$form->set_datos(array());
 	}
-	
+
 	function evt__form_passwd_vencido__modificacion($datos)
 	{
-		$usuario = $datos['usuario']; 
-		//$this->s__datos['usuario']; 
-		//ei_arbol($usuario);       
-		if (toba::manejador_sesiones()->invocar_autenticar($usuario, $datos['clave_anterior'], null)) {        //Si la clave anterior coincide    
-				$proyecto = toba::proyecto()->get_id();
+		$usuario = $this->s__datos['usuario'];
+		if (toba::manejador_sesiones()->invocar_autenticar($usuario, $datos['clave_anterior'], null)) {		//Si la clave anterior coincide
+			 $proyecto = toba::proyecto()->get_id();
 			//Verifico que no intenta volver a cambiarla antes del periodo permitido
 			$dias_minimos = toba_parametros::get_clave_validez_minima($proyecto);
 			if (! is_null($dias_minimos)) {
@@ -298,18 +283,18 @@ class ci_login extends toba_ci
 					toba::notificacion()->agregar('No transcurrio el per�odo minimo para poder volver a cambiar su contrase�a. Intentelo en otra ocasi�n');
 					return;
 				}
-			}        
-			//Obtengo el largo minimo de la clave            
+			}
+			//Obtengo el largo minimo de la clave
 			$largo_clave = toba_parametros::get_largo_pwd($proyecto);
 			try {
 				toba_usuario::verificar_composicion_clave($datos['clave_nueva'], $largo_clave);
-			
+
 				//Obtengo los dias de validez de la nueva clave
 				$dias = toba_parametros::get_clave_validez_maxima($proyecto);
 				$ultimas_claves = toba_parametros::get_nro_claves_no_repetidas($proyecto);
 				toba_usuario::verificar_clave_no_utilizada($datos['clave_nueva'], $usuario, $ultimas_claves);
 				toba_usuario::reemplazar_clave_vencida($datos['clave_nueva'], $usuario, $dias);
-				$this->es_cambio_contrasenia = true;                //Bandera para el post_eventos
+				$this->es_cambio_contrasenia = true;				//Bandera para el post_eventos
 			} catch(toba_error_pwd_conformacion_invalida $e) {
 				toba::logger()->info($e->getMessage());
 				toba::notificacion()->agregar($e->getMessage(), 'error');
@@ -325,9 +310,84 @@ class ci_login extends toba_ci
 	{
 		$this->set_pantalla('login');
 	}
-	
+
+    //-----------------------------------------------------------------------------------
+	//---- form_2do_factor --------------------------------------------------------------
+	//-----------------------------------------------------------------------------------
+
+	function conf__form_2do_factor(toba_ei_formulario $form)
+	{
+            if (toba::memoria()->get_dato_instancia('toba_intentos_fallidos_login') === null
+                && $form->existe_ef('test_error_repetido')) {
+            	$form->desactivar_efs(array('test_error_repetido'));
+            }
+            $form->set_datos_defecto(array('usuario' => toba::usuario()->get_id()));
+	}
+
+	function evt__form_2do_factor__ingresar($datos)
+	{
+            try {
+                toba::usuario()->verificar_segundo_factor($datos['clave']);             //Reemplazable con lo que sea que quieran
+                toba::memoria()->set_dato_instancia('second_factor_complete', 1);
+                $this->set_pantalla('login');
+            } catch (\Exception $ex) {
+                //Se palma, sigo en el mismo lugar (falta gif de chubby de Jurassic Park)
+                toba::notificacion()->agregar('Segundo Factor no v�lido');
+                toba::logger()->error($ex->getMessage());
+            }
+	}
+
+
+        //-----------------------------------------------------------------------------------
+	//---- AUXILIARES
+	//-----------------------------------------------------------------------------------
+
+        /**
+         * Intenta autenticar contra mecanismos centralizados (openid u otros)
+         */
+        protected function chequear_autenticaciones_centralizadas()
+        {
+            $tipo_auth = toba::instalacion()->get_tipo_autenticacion();
+            if (isset($this->s__datos['usuario']) || isset($this->s__datos_openid['provider'])) {			//Para el caso de autenticacion basica y OpenId
+                    if ($tipo_auth == 'openid' && isset($this->s__datos_openid)) {
+                            toba::manejador_sesiones()->get_autenticacion()->set_provider($this->s__datos_openid);
+                    }
+                    $usuario = (isset($this->s__datos['usuario'])) ? $this->s__datos['usuario'] : '';
+                    $clave = (isset($this->s__datos['clave'])) ? $this->s__datos['clave'] : '';
+
+                    if (toba_autenticacion::es_autenticacion_centralizada($tipo_auth)) {
+                            toba::manejador_sesiones()->get_autenticacion()->usar_login_basico();
+                    }
+                    toba::manejador_sesiones()->login($usuario, $clave);
+
+            } elseif (toba_autenticacion::es_autenticacion_centralizada($tipo_auth) && toba::manejador_sesiones()->get_autenticacion()->uso_login_centralizado()) {	//El control por session es para que no redireccione automaticamente
+                    toba::manejador_sesiones()->get_autenticacion()->verificar_acceso();
+            }
+        }
+
+        /**
+         * Chequea si el pedido de pagina es un acceso valido de autenticacion centralizada
+         */
+        protected function chequear_acceso_centralizado()
+        {
+            if (toba::instalacion()->get_tipo_autenticacion() == 'openid') {
+			try {
+				toba::manejador_sesiones()->get_autenticacion()->verificar_acceso();
+			} catch (toba_error_autenticacion $e) {
+				//-- Caso error de validaci�n
+				toba::notificacion()->agregar($e->getMessage());
+			}
+		}
+		$tipo_auth = toba::instalacion()->get_tipo_autenticacion();
+		if (toba_autenticacion::es_autenticacion_centralizada($tipo_auth)) {
+			if (! toba::manejador_sesiones()->get_autenticacion()->permite_login_toba()) {
+				$this->evt__cas__ingresar();
+			}
+		}
+        }
+
 	//-------------------------------------------------------------------
-	
+
 	function extender_objeto_js()
 	{
 		$escapador = toba::escaper();
@@ -348,10 +408,10 @@ class ci_login extends toba_ci
 				}
 			";
 		}
-				
+
 		$finalizar = toba::memoria()->get_parametro(apex_sesion_qs_finalizar);
-		if (is_null($finalizar)) {                                            //Sesion activa
-			if (toba::manejador_sesiones()->existe_usuario_activo()) {
+		if (is_null($finalizar)) {											//Sesion activa
+			if (toba::manejador_sesiones()->existe_usuario_activo() && ! toba::nucleo()->verifica_necesidad_2FA()) {
 				//Si ya esta logueado y se abre el sistema en popup, abrirlo
 				if (isset($this->s__item_inicio)) {
 					list($proyecto, $item) = explode($this->s__item_inicio);
@@ -360,27 +420,21 @@ class ci_login extends toba_ci
 					$item = toba::proyecto()->get_parametro('item_inicio_sesion');
 				}
 				$url = $escapador->escapeJs(toba::vinculador()->get_url($proyecto, $item));
-				
+
 				if ($this->en_popup) {
-					echo " abrir_popup('sistema', '$url', {resizable: 1});    ";
+					echo " abrir_popup('sistema', '$url', {resizable: 1});	";
 				} else {
 					echo " window.location.href = '$url';";
 				}
 			}
-		} elseif ($this->en_popup) {                                    //Se finaliza la sesion
+		} elseif ($this->en_popup) {									//Se finaliza la sesion
 				echo '
 					if (window.opener &&  window.opener.location) {
-						window.opener.location.href = window.opener.location.href; 
+						window.opener.location.href = window.opener.location.href;
 					}
 					window.close();
 				';
-		}        
+		}
 	}
-	//-----------------------------------------------------------------------------------
-	//---- datos ------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------
-
-	
-
 }
 ?>

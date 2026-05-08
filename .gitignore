@@ -3,3 +3,4 @@ php/mail/lfontes.json
 php/mail/config_smtp.json
 .env
 .gitignore
+cron_actualizar_vistas.php
