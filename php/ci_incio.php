@@ -42,7 +42,9 @@ class ci_incio extends comision_ci
 
 		//ei_arbol ($agente);
 		for ($i = 0; $i < $j; $i++) {
-			if ($this->s__datos[$i]['estado'] <> 'Ausente Justificado') {
+			if ($this->s__datos[$i]['estado'] <> 'Ausente Justificado' &&
+        		!empty($this->s__datos[$i]['horas_trabajadas']) &&
+       			 $this->s__datos[$i]['horas_trabajadas'] != '00:00:00') {
 				list($horas, $minutos, $segundos) = explode(":", $this->s__datos[$i]['horas_trabajadas']);
 				$minu = (intval($horas) * 60) + (intval($minutos));
 				$datos_1[] = round($minu / 60, 2);
@@ -138,6 +140,11 @@ class ci_incio extends comision_ci
 		//$datos = array(13, 5, 3, 15, 10);
 		$j = count($this->s__datos);
 		for ($i = 0; $i < $j; $i++) {
+			if (
+        		$this->s__datos[$i]['estado'] <> 'Ausente Justificado' &&
+        		!empty($this->s__datos[$i]['horas_trabajadas']) &&
+        		$this->s__datos[$i]['horas_trabajadas'] != '00:00:00'
+    		) {
 			list($horas, $minutos, $segundos) = explode(":", $this->s__datos[$i]['horas_trabajadas']);
 			$minu = (intval($horas) * 60) + (intval($minutos));
 			$datos_1[] = round($minu / 60, 2);
@@ -146,6 +153,7 @@ class ci_incio extends comision_ci
 			$datos_2[] = round($minut / 60, 2);
 			list($anio, $mes, $dia) = explode("-", $this->s__datos[$i]['fecha']);
 			$dias[] = $dia; //.'/' . $mes;
+			}
 		}
 
 		$canvas = new Graph(900, 400);
