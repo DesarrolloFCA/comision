@@ -25,10 +25,11 @@ class ci_incio extends comision_ci
 		$legajo = $agente['legajo'];*/
 		//ei_arbol($agente);
 
-		$sql = "SELECT Distinct  fecha,hora_entrada,hora_salida,horas_trabajadas,horas_requeridad,descripcion,estado 
+		$sql = "SELECT Distinct  dia,fecha,hora_entrada,hora_salida,horas_trabajadas,horas_requeridad,descripcion,estado 
 		from reloj.vm_detalle_pres
 		where legajo = $legajo
-		and fecha >= CURRENT_DATE - INTERVAL '30 days'";
+		and fecha >= CURRENT_DATE - INTERVAL '30 days'
+		order by fecha DESC";
 
 		$presentismo = toba::db('comision')->consultar($sql);
 		$this->s__datos = $presentismo;
