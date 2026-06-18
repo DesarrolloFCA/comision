@@ -29,7 +29,7 @@ class ci_incio extends comision_ci
 		from reloj.vm_detalle_pres
 		where legajo = $legajo
 		and fecha >= CURRENT_DATE - INTERVAL '30 days'
-		order by fecha DESC";
+		order by fecha Asc";
 
 		$presentismo = toba::db('comision')->consultar($sql);
 		$this->s__datos = $presentismo;
