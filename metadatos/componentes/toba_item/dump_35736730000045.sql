@@ -17,8 +17,8 @@ INSERT INTO apex_item (item_id, proyecto, item, padre_id, padre_proyecto, padre,
 	'0', --carpeta
 	'0', --nivel_acceso
 	'web', --solicitud_tipo
-	'comision', --pagina_tipo_proyecto
-	'tp_login', --pagina_tipo
+	'toba', --pagina_tipo_proyecto
+	'logon', --pagina_tipo
 	'toba', --actividad_buffer_proyecto
 	'0', --actividad_buffer
 	'toba', --actividad_patron_proyecto
@@ -49,7 +49,7 @@ INSERT INTO apex_item (item_id, proyecto, item, padre_id, padre_proyecto, padre,
 	NULL, --usuario
 	'1', --exportable
 	'2022-08-02 15:52:16', --creacion
-	'0'  --retrasar_headers
+	'1'  --retrasar_headers
 );
 --- FIN Grupo de desarrollo 35736730
 
