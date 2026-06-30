@@ -1001,11 +1001,16 @@ class ci_articulo extends comision_ci
 													AND id_motivo = $id_motivo ;";
 													$ina = toba::db('comision')->consultar($sql);
 													$id_inasistencia = $ina[0]['id_inasistencia'];
-													$ruta = 'C:/Toba/proyectos/ctrl_asis/www/certificados/';
-													$ar_nombre_completo = explode('.', $datos['certificado']['name']);
-													$archivo_nombre = $ruta . $id_inasistencia . $fecha_inicio . '.pdf';
+													$ruta = realpath(__DIR__ . '/../../ctrl_asis/www/certificados/') . '/';
+													//$ruta = 'C:/Toba/proyectos/ctrl_asis/www/certificados/';cd
+													//$ar_nombre_completo = explode('.', $datos['certificado']['name']);
+													$info = pathinfo($datos['certificado']['name']);
+													//$datos['certificado']['nombre']    = $info['filename'];
+													$datos['certificado']['extension'] = $info['extension'];
+													$archivo_nombre = $ruta . $id_inasistencia . $fecha_inicio . '.' . $info['extension'];
 													$datos['archivo'] = $archivo_nombre;
 													$datos = $this->procesar_archivo($datos);
+													//ei_arbol ($datos);
 												}
 											}
 										}
