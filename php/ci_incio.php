@@ -32,7 +32,9 @@ class ci_incio extends comision_ci
 		order by fecha Asc";
 
 		$presentismo = toba::db('comision')->consultar($sql);
+	
 		$this->s__datos = $presentismo;
+	
 		$cuadro->set_datos($presentismo);
 	}
 	function conf__cuadrograf(comision_ei_cuadro $cuadro)
@@ -40,8 +42,9 @@ class ci_incio extends comision_ci
 		$j = count($this->s__datos);
 
 
-
+		
 		//ei_arbol ($agente);
+		$bandera = true;
 		for ($i = 0; $i < $j; $i++) {
 			if ($this->s__datos[$i]['estado'] <> 'Ausente Justificado' &&
         		!empty($this->s__datos[$i]['horas_trabajadas']) &&
@@ -50,21 +53,32 @@ class ci_incio extends comision_ci
 				$minu = (intval($horas) * 60) + (intval($minutos));
 				$datos_1[] = round($minu / 60, 2);
 			}
+		 	if ($this->s__datos[$i]['horas_requeridad']!== null && $bandera) {
+       		 $requeridas= $this->s__datos[$i]['horas_requeridad'];
+       		 $bandera = false;
+  		 	}
 		}
+		
+		
+		
 	if (count($datos_1)>1) {
 		$prom_hora = round(array_sum($datos_1) / (count($datos_1) - 1), 2);
 	}
-		list($hora, $minuto, $segundos) = explode(":", $this->s__datos[0]['horas_requeridad']);
+		list($hora, $minuto, $segundos) = explode(":",$requeridas);
 		$minut = (intval($hora) * 60) + intval($minuto);
+		
 		$horas_requ = round($minut / 60, 2);
+		
 		//$horas_cumpli = ($prom_hora/$horas_requ) *100;
 		$max = intval($horas_requ) + 2;
 
+		
 		$majorTicks = [];
 		for ($i = 0; $i <= $max; $i++) {
 			$majorTicks[] = (string)$i;
 		}
 		$majorTicksJson = json_encode($majorTicks);
+
 
 		$script = "<html>
   <head>
