@@ -29,6 +29,7 @@ class ci_razones_particulares extends comision_ci
 			$id = $datos[$i]['id_inasistencia'];
 			$obs = $datos[$i]['obs'];
 			$datos[$i]['fecha_inicio'] = $this->s__datos[$i]['fecha_inicio'];
+			
 			if ($datos[$i]['auto_sup'] == 1) {
 				$aut_sup = 'true';
 			} else {
@@ -46,10 +47,7 @@ class ci_razones_particulares extends comision_ci
 					//    ei_arbol($sql);
 					toba::db('comision')->ejecutar($sql);
 				} else {
-					if ($datos[$i]['auto_sup'] == 1) {
-						//ei_arbol($legajo);
 						$filtro['legajo'] = $legajo;
-
 						$edad = $this->dep('mapuche')->get_edad($legajo, null);
 						$direccion = $this->dep('mapuche')->get_datos_agente($filtro);
 						$nombre = $direccion[0]['nombre'];
@@ -87,6 +85,7 @@ class ci_razones_particulares extends comision_ci
 						$datos_correo['fecha_inicio'] = $fecha_ini;
 						$datos_correo['fecha_fin'] = $fecha_fin;
 						$datos_correo['dias'] = $dias;
+						
 						$sql = "SELECT descripcion from reloj.motivo
 						WHERE id_motivo = $id_motivo";
 						$mot = toba::db('comision')->consultar_fila($sql);
@@ -97,6 +96,12 @@ class ci_razones_particulares extends comision_ci
 						$datos_correo['catedra'] = $nom_cat['nombre_catedra'];
 						$datos_correo['observaciones'] = $obs ;
 						$this->s__datos_correo = $datos_correo;
+					if ($datos[$i]['auto_sup'] == 1) {
+						//ei_arbol($legajo);
+						
+
+						
+						
 						$sql = "INSERT INTO reloj.parte(
 						legajo, edad, fecha_alta, usuario_alta, estado, fecha_inicio_licencia, dias, cod_depcia, domicilio, localidad, agrupamiento, fecha_nacimiento,
 						apellido, nombre, estado_civil, observaciones, id_decreto, id_motivo,  tipo_sexo,usuario_cierre,fecha_cierre)
@@ -114,6 +119,7 @@ class ci_razones_particulares extends comision_ci
 						WHERE id_inasistencia =$id";
 						toba::db('comision')->ejecutar($sql);
 					} else {
+					
 						$this->enviar_correos($correo['email'], $datos[$i]['auto_sup']);
 						$sql = "UPDATE reloj.inasistencias
 					SET estado='C', observaciones = '$obs' 
@@ -169,7 +175,7 @@ class ci_razones_particulares extends comision_ci
 	{
 		require_once('mail/tobamail.php');
 		$datos = $this->s__datos_correo;
-		//ei_arbol ($datos);  
+		
 		$fecha = date('d/m/Y', strtotime($datos['fecha_inicio']));
 		$hasta = date('d/m/Y', strtotime($datos['fecha_fin']));
 		$datos['agente_ayn'] = $datos['apellido'] . ', ' . $datos['nombre'];
@@ -200,6 +206,7 @@ class ci_razones_particulares extends comision_ci
 		} //date("d/m/y",$fecha)
 		
 		//Enviamos el correo
+		
 		
 		$mail = new TobaMail($correo, $asunto, $cuerpo, $desde, $ccopia);
 		

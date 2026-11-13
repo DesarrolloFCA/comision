@@ -41,7 +41,7 @@ class dt_catedra extends comision_datos_tabla
 		$sql = "SELECT legajo_autoridad legajo_aut from reloj.autoridades
 		WHERE legajo_subalterno = $legajo";
 		$autoridad = toba::db('comision')->consultar($sql);
-	//	ei_arbol($autoridad);
+	
 		if (count($autoridad)> 0) {
 			$leg= $autoridad [0]['legajo_aut'];
 			if ($leg < 10){
