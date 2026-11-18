@@ -44,33 +44,48 @@ class ci_incio extends comision_ci
 
 		
 		//ei_arbol ($agente);
+		$total_segundos = 0;
+		$dias_trabajados = 0;
+		$requeridas = '00:00:00';
 		$bandera = true;
 		for ($i = 0; $i < $j; $i++) {
 			if ($this->s__datos[$i]['estado'] <> 'Ausente Justificado' &&
-        		!empty($this->s__datos[$i]['horas_trabajadas']) &&
-       			 $this->s__datos[$i]['horas_trabajadas'] != '00:00:00') {
-				list($horas, $minutos, $segundos) = explode(":", $this->s__datos[$i]['horas_trabajadas']);
-				$minu = (intval($horas) * 60) + (intval($minutos));
-				$datos_1[] = round($minu / 60, 2);
+				!empty($this->s__datos[$i]['horas_trabajadas']) &&
+				$this->s__datos[$i]['horas_trabajadas'] != '00:00:00') {
+				list($horas, $minutos, $segundos) = array_pad(explode(":", $this->s__datos[$i]['horas_trabajadas']), 3, 0);
+				$total_segundos += (intval($horas) * 3600) + (intval($minutos) * 60) + intval($segundos);
+				$dias_trabajados++;
 			}
-		 	if ($this->s__datos[$i]['horas_requeridad']!== null && $bandera) {
-       		 $requeridas= $this->s__datos[$i]['horas_requeridad'];
-       		 $bandera = false;
-  		 	}
+			if ($this->s__datos[$i]['horas_requeridad'] !== null && $bandera) {
+				$requeridas = $this->s__datos[$i]['horas_requeridad'];
+				$bandera = false;
+			}
 		}
-		
-		
-		
-	if (count($datos_1)>1) {
-		$prom_hora = round(array_sum($datos_1) / (count($datos_1) - 1), 2);
-	}
-		list($hora, $minuto, $segundos) = explode(":",$requeridas);
+
+		$prom_segundos = $dias_trabajados > 0
+			? round($total_segundos / $dias_trabajados)
+			: 0;
+		$prom_hora = $dias_trabajados > 0
+			? round($prom_segundos / 3600, 2)
+			: 0;
+
+		$prom_minutos_totales = (int) round($prom_segundos / 60);
+		$prom_h = intdiv($prom_minutos_totales, 60);
+		$prom_m = $prom_minutos_totales % 60;
+		$prom_formato = sprintf('%dh %02dm', $prom_h, $prom_m);
+		$prom_formato_json = json_encode($prom_formato);
+
+		list($hora, $minuto, $segundos) = array_pad(explode(":", $requeridas), 3, 0);
 		$minut = (intval($hora) * 60) + intval($minuto);
-		
+		$req_h = intdiv($minut, 60);
+		$req_m = $minut % 60;
+		$req_formato = sprintf('%dh %02dm', $req_h, $req_m);
+
 		$horas_requ = round($minut / 60, 2);
-		
+		$yellow_from = max(0, $horas_requ - 1);
+
 		//$horas_cumpli = ($prom_hora/$horas_requ) *100;
-		$max = intval($horas_requ) + 2;
+		$max = max(intval($horas_requ) + 2, intval(ceil($prom_hora)));
 
 		
 		$majorTicks = [];
@@ -91,15 +106,15 @@ class ci_incio extends comision_ci
 
         var data = google.visualization.arrayToDataTable([
           ['Label', 'Value'],
-          ['Prom. Horas', 0],
+          ['Prom. Horas', {v: 0, f: '0h 00m'}],
           ]);
 
 		var options = {
           width: 400, height: 220,
-          greenFrom: $horas_requ, greenTo: $max ,
-          yellowFrom:$horas_requ - 1, yellowTo: $horas_requ,
+          greenFrom: $horas_requ, greenTo: $max,
+          yellowFrom: $yellow_from, yellowTo: $horas_requ,
+          redFrom: 0, redTo: $yellow_from,
 		  max : $max,
-		//  redFrom:80, redTo: 0
           minorTicks: 6,
 		  majorTicks: $majorTicksJson,
 		  animation:{
@@ -110,7 +125,7 @@ class ci_incio extends comision_ci
         var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
 
         chart.draw(data, options);
-		data.setValue(0, 1, $prom_hora);
+		data.setCell(0, 1, $prom_hora, $prom_formato_json);
         chart.draw(data, options);
 
         //setInterval(function() {
@@ -130,6 +145,9 @@ class ci_incio extends comision_ci
   </head>
   <body>
     <div id='chart_div' style='width: 400px; height: 220px;'></div>
+    <div style='width: 400px; text-align: center; font-family: Arial, sans-serif; font-size: 12px; color: #555; margin-top: 4px;'>
+      Promedio: <strong>$prom_formato</strong> | Requerido: <strong>$req_formato</strong> ($dias_trabajados d&iacute;as)
+    </div>
   </body>
 </html>";
 		$datos[0]['grafico'] = $script;
